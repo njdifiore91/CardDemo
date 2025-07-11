@@ -3,6 +3,7 @@ package com.carddemo.card;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -96,8 +97,8 @@ public class CardListService {
      * @param sessionManagementService Service for session context management
      */
     @Autowired
-    public CardListService(CardRepository cardRepository, 
-                          AccountRepository accountRepository,
+    public CardListService(@Lazy CardRepository cardRepository, 
+    			@Lazy AccountRepository accountRepository,
                           AuditService auditService, 
                           SessionManagementService sessionManagementService) {
         this.cardRepository = cardRepository;

@@ -3,6 +3,7 @@ package com.carddemo.account;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.dao.DataAccessException;
@@ -106,7 +107,7 @@ public class AccountService {
      */
     @Autowired
     public AccountService(
-            AccountRepository accountRepository,
+            @Lazy AccountRepository accountRepository,
             AccountValidator accountValidator,
             AuditService auditService,
             SessionManagementService sessionManagementService) {

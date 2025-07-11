@@ -23,6 +23,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.util.StringUtils;
 
+import com.carddemo.transaction.Transaction;
+
 import javax.sql.DataSource;
 import java.io.ByteArrayOutputStream;
 import java.io.FileOutputStream;
@@ -217,6 +219,10 @@ public class ReportService {
             logger.error("Error generating statement report", e);
             return ReportGenerationResult.error("Unable to generate report: " + e.getMessage());
         }
+    }
+
+    public byte[] generateStatementReport(List<Transaction> transactions, Map<String, Object> reportParameters) {
+    	return null;
     }
 
     /**

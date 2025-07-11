@@ -252,7 +252,7 @@ public class StatementBatchService {
             }
             
             // Record start of statement generation
-            batchMonitoringService.recordJobMetrics("STATEMENT_GENERATION", "STARTED", startTime);
+            batchMonitoringService.recordJobMetrics("STATEMENT_GENERATION", "STARTED", startTime, null);
             
             // Phase 1: Data Preparation (CBSTM03A equivalent)
             logger.info("Executing Phase 1: Statement data preparation");
@@ -299,13 +299,25 @@ public class StatementBatchService {
             if (processingTime.compareTo(STATEMENT_GENERATION_SLA) > 0) {
                 logger.warn("Statement generation SLA violation: {} exceeded limit of {}", 
                     processingTime, STATEMENT_GENERATION_SLA);
-                batchMonitoringService.triggerAlert("STATEMENT_SLA_VIOLATION", 
-                    Map.of("processingTime", processingTime.toString(),
-                           "slaLimit", STATEMENT_GENERATION_SLA.toString()));
+                
+                // Create the alert message
+                String alertMessage = String.format(
+                    "Statement generation SLA violation: processing time %s minutes exceeded limit of %s minutes",
+                    processingTime.toMinutes(),
+                    STATEMENT_GENERATION_SLA.toMinutes()
+                );
+                
+                // Call triggerAlert with correct parameters
+                batchMonitoringService.triggerAlert(
+                    "STATEMENT_SLA_VIOLATION",  // alertType
+                    "STATEMENT_GENERATION",     // jobName
+                    alertMessage,               // message
+                    "HIGH"                      // severity
+                );
             }
             
             // Record completion metrics
-            batchMonitoringService.recordJobMetrics("STATEMENT_GENERATION", "COMPLETED", endTime);
+            batchMonitoringService.recordJobMetrics("STATEMENT_GENERATION", "COMPLETED", startTime, endTime);
             
             logger.info("Statement generation completed successfully in {} minutes", 
                 processingTime.toMinutes());
@@ -633,10 +645,20 @@ public class StatementBatchService {
             logger.warn("Statement generation SLA violation: {} exceeded limit of {}", 
                 processingTime, STATEMENT_GENERATION_SLA);
             
-            // Trigger alert
-            batchMonitoringService.triggerAlert("STATEMENT_SLA_VIOLATION", 
-                Map.of("processingTime", processingTime.toString(),
-                       "slaLimit", STATEMENT_GENERATION_SLA.toString()));
+            // Create the alert message
+            String alertMessage = String.format(
+                "Statement generation SLA violation: processing time %s minutes exceeded limit of %s minutes",
+                processingTime.toMinutes(),
+                STATEMENT_GENERATION_SLA.toMinutes()
+            );
+            
+            // Call triggerAlert with correct parameters
+            batchMonitoringService.triggerAlert(
+                "STATEMENT_SLA_VIOLATION",  // alertType
+                "STATEMENT_GENERATION",     // jobName
+                alertMessage,               // message
+                "HIGH"                      // severity
+            );
             
             return false;
         }
@@ -654,12 +676,22 @@ public class StatementBatchService {
         logger.error("Statement generation failure: {} for date: {}", failureType, processDate);
         
         // Record failure metrics
-        batchMonitoringService.recordJobMetrics("STATEMENT_GENERATION", "FAILED", LocalDateTime.now());
+        batchMonitoringService.recordJobMetrics("STATEMENT_GENERATION", "FAILED", processDate, LocalDateTime.now());
         
-        // Trigger alert
-        batchMonitoringService.triggerAlert("STATEMENT_GENERATION_FAILURE", 
-            Map.of("failureType", failureType,
-                   "processDate", processDate.toString()));
+        // Create the alert message
+        String alertMessage = String.format(
+            "Statement generation failure: %s occurred for process date %s",
+            failureType,
+            processDate.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
+        );
+        
+        // Call triggerAlert with correct parameters
+        batchMonitoringService.triggerAlert(
+            "STATEMENT_GENERATION_FAILURE",  // alertType
+            "STATEMENT_GENERATION",          // jobName
+            alertMessage,                    // message
+            "CRITICAL"                       // severity
+        );
     }
     
     /**

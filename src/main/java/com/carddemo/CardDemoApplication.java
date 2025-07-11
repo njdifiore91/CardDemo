@@ -119,26 +119,30 @@ public class CardDemoApplication {
      * @param args Command line arguments for application startup
      */
     public static void main(String[] args) {
-        // Configure system properties for optimal performance
-        System.setProperty("spring.jmx.enabled", "true");
-        System.setProperty("management.endpoints.web.exposure.include", "health,info,metrics,prometheus");
-        System.setProperty("server.compression.enabled", "true");
-        System.setProperty("server.compression.mime-types", "application/json,application/xml,text/html,text/xml,text/plain");
-        
-        // Initialize Spring Boot application context
-        SpringApplication application = new SpringApplication(CardDemoApplication.class);
-        
-        // Configure additional application properties
-        application.setAdditionalProfiles("actuator", "jpa", "batch", "redis", "security");
-        
-        // Set application banner and startup logging
-        application.setBannerMode(org.springframework.boot.Banner.Mode.CONSOLE);
-        application.setLogStartupInfo(true);
-        
-        // Configure graceful shutdown for container environments
-        application.setRegisterShutdownHook(true);
-        
-        // Start the application
-        application.run(args);
+    	try {
+	        // Configure system properties for optimal performance
+	        System.setProperty("spring.jmx.enabled", "true");
+	        System.setProperty("management.endpoints.web.exposure.include", "health,info,metrics,prometheus");
+	        System.setProperty("server.compression.enabled", "true");
+	        System.setProperty("server.compression.mime-types", "application/json,application/xml,text/html,text/xml,text/plain");
+	        
+	        // Initialize Spring Boot application context
+	        SpringApplication application = new SpringApplication(CardDemoApplication.class);
+	        
+	        // Configure additional application properties
+	        application.setAdditionalProfiles("actuator", "jpa", "batch", "redis", "security");
+	        
+	        // Set application banner and startup logging
+	        application.setBannerMode(org.springframework.boot.Banner.Mode.CONSOLE);
+	        application.setLogStartupInfo(true);
+	        
+	        // Configure graceful shutdown for container environments
+	        application.setRegisterShutdownHook(true);
+	        
+	        // Start the application
+	        application.run(args);
+    	} catch (Exception e) {
+            e.printStackTrace(); // Print anything Spring swallowed
+        }
     }
 }

@@ -1,42 +1,32 @@
 package com.carddemo.card;
 
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.dao.DataAccessException;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.Authentication;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import jakarta.validation.Valid;
-import java.util.Optional;
-import java.util.List;
-import java.util.ArrayList;
-import java.util.Map;
-import java.util.HashMap;
-import java.util.stream.Collectors;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
-import java.math.BigDecimal;
-
-import com.carddemo.card.CardValidator;
-import com.carddemo.card.CardListService;
-import com.carddemo.card.CardDetailService;
-import com.carddemo.card.CardUpdateService;
-import com.carddemo.card.CardRepository;
-import com.carddemo.card.Card;
-import com.carddemo.card.CardListDTO;
-import com.carddemo.card.CardDetailDTO;
-import com.carddemo.card.CardUpdateDTO;
+import com.carddemo.account.AccountRepository;
 import com.carddemo.audit.AuditService;
 import com.carddemo.session.SessionManagementService;
-import com.carddemo.account.Account;
-import com.carddemo.account.AccountRepository;
+
+import jakarta.validation.Valid;
 
 /**
  * Primary card management service class implementing unified card operations converted from 
@@ -145,10 +135,10 @@ public class CardService {
                       CardListService cardListService,
                       CardDetailService cardDetailService,
                       CardUpdateService cardUpdateService,
-                      CardRepository cardRepository,
+                      @Lazy CardRepository cardRepository,
                       AuditService auditService,
                       SessionManagementService sessionManagementService,
-                      AccountRepository accountRepository) {
+                      @Lazy AccountRepository accountRepository) {
         this.cardValidator = cardValidator;
         this.cardListService = cardListService;
         this.cardDetailService = cardDetailService;
@@ -181,7 +171,7 @@ public class CardService {
         } catch (Exception e) {
             logger.error("Error finding all cards", e);
             auditService.logSecurityEvent(getCurrentUser(), "CARD_FIND_ALL_ERROR", "READ_ERROR", 
-                1, createQueryDetails("findAllCards", "ALL", "ERROR: " + e.getMessage()));
+                createQueryDetails("findAllCards", "ALL", "ERROR: " + e.getMessage()));
             throw new RuntimeException("Error retrieving card list", e);
         }
     }
@@ -201,7 +191,7 @@ public class CardService {
             if (!cardValidator.isValidLuhnCheck(cardNumber)) {
                 logger.warn("Invalid card number format: {}", cardNumber);
                 auditService.logSecurityEvent(getCurrentUser(), "CARD_FIND_INVALID_ID", "READ_ERROR", 
-                    1, createQueryDetails("findCardById", cardNumber, "INVALID_FORMAT"));
+                    createQueryDetails("findCardById", cardNumber, "INVALID_FORMAT"));
                 return Optional.empty();
             }
             
@@ -210,10 +200,10 @@ public class CardService {
                 1, createQueryDetails("findCardById", cardNumber, "SUCCESS"));
             
             // Delegate to specialized service and convert to Optional<Card>
-            Optional<CardDetailDTO> cardDetailDto = cardDetailService.getCardDetails(cardNumber);
-            if (cardDetailDto.isPresent()) {
+            CardDetailDTO cardDetailDto = cardDetailService.getCardDetails(cardNumber);
+            if (cardDetailDto != null) {
                 // Convert CardDetailDTO to Card (simplified conversion)
-                return Optional.of(convertToCard(cardDetailDto.get()));
+                return Optional.of(convertToCard(cardDetailDto));
             } else {
                 return Optional.empty();
             }
@@ -221,7 +211,7 @@ public class CardService {
         } catch (Exception e) {
             logger.error("Error finding card by ID: {}", cardNumber, e);
             auditService.logSecurityEvent(getCurrentUser(), "CARD_FIND_BY_ID_ERROR", "READ_ERROR", 
-                1, createQueryDetails("findCardById", cardNumber, "ERROR: " + e.getMessage()));
+                createQueryDetails("findCardById", cardNumber, "ERROR: " + e.getMessage()));
             throw new RuntimeException("Error retrieving card details", e);
         }
     }
@@ -241,7 +231,7 @@ public class CardService {
             if (!accountId.matches("^\\d{11}$")) {
                 logger.warn("Invalid account ID format: {}", accountId);
                 auditService.logSecurityEvent(getCurrentUser(), "CARD_FIND_INVALID_ACCOUNT", "READ_ERROR", 
-                    1, createQueryDetails("findCardsByAccountId", accountId, "INVALID_FORMAT"));
+                    createQueryDetails("findCardsByAccountId", accountId, "INVALID_FORMAT"));
                 return new ArrayList<>();
             }
             
@@ -263,7 +253,7 @@ public class CardService {
         } catch (Exception e) {
             logger.error("Error finding cards by account ID: {}", accountId, e);
             auditService.logSecurityEvent(getCurrentUser(), "CARD_FIND_BY_ACCOUNT_ERROR", "READ_ERROR", 
-                1, createQueryDetails("findCardsByAccountId", accountId, "ERROR: " + e.getMessage()));
+                createQueryDetails("findCardsByAccountId", accountId, "ERROR: " + e.getMessage()));
             throw new RuntimeException("Error retrieving cards for account", e);
         }
     }
@@ -304,7 +294,7 @@ public class CardService {
         } catch (Exception e) {
             logger.error("Error finding cards with pagination: page={}, size={}", page, size, e);
             auditService.logSecurityEvent(getCurrentUser(), "CARD_FIND_PAGINATED_ERROR", "READ_ERROR", 
-                1, createQueryDetails("findCardsWithPagination", "page=" + page + ",size=" + size, "ERROR: " + e.getMessage()));
+                createQueryDetails("findCardsWithPagination", "page=" + page + ",size=" + size, "ERROR: " + e.getMessage()));
             throw new RuntimeException("Error retrieving paginated card list", e);
         }
     }
@@ -327,7 +317,7 @@ public class CardService {
             if (!accountId.matches("^\\d{11}$")) {
                 logger.warn("Invalid account ID format: {}", accountId);
                 auditService.logSecurityEvent(getCurrentUser(), "CARD_FIND_ACCOUNT_PAGINATED_INVALID", "READ_ERROR", 
-                    1, createQueryDetails("findCardsByAccountIdWithPagination", accountId, "INVALID_FORMAT"));
+                    createQueryDetails("findCardsByAccountIdWithPagination", accountId, "INVALID_FORMAT"));
                 return new CardListDTO();
             }
             
@@ -356,7 +346,7 @@ public class CardService {
             logger.error("Error finding cards by account ID with pagination: accountId={}, page={}, size={}", 
                         accountId, page, size, e);
             auditService.logSecurityEvent(getCurrentUser(), "CARD_FIND_ACCOUNT_PAGINATED_ERROR", "READ_ERROR", 
-                1, createQueryDetails("findCardsByAccountIdWithPagination", accountId, "ERROR: " + e.getMessage()));
+                createQueryDetails("findCardsByAccountIdWithPagination", accountId, "ERROR: " + e.getMessage()));
             throw new RuntimeException("Error retrieving paginated cards for account", e);
         }
     }
@@ -376,7 +366,7 @@ public class CardService {
             if (!cardValidator.isValidLuhnCheck(cardNumber)) {
                 logger.warn("Invalid card number format for details: {}", cardNumber);
                 auditService.logSecurityEvent(getCurrentUser(), "CARD_DETAILS_INVALID_ID", "READ_ERROR", 
-                    1, createQueryDetails("getCardDetails", cardNumber, "INVALID_FORMAT"));
+                    createQueryDetails("getCardDetails", cardNumber, "INVALID_FORMAT"));
                 throw new IllegalArgumentException("Invalid card number format");
             }
             
@@ -396,7 +386,7 @@ public class CardService {
         } catch (Exception e) {
             logger.error("Error getting card details for: {}", cardNumber, e);
             auditService.logSecurityEvent(getCurrentUser(), "CARD_GET_DETAILS_ERROR", "READ_ERROR", 
-                1, createQueryDetails("getCardDetails", cardNumber, "ERROR: " + e.getMessage()));
+                createQueryDetails("getCardDetails", cardNumber, "ERROR: " + e.getMessage()));
             throw new RuntimeException("Error retrieving card details", e);
         }
     }
@@ -416,7 +406,7 @@ public class CardService {
             if (!cardValidator.isValidLuhnCheck(cardNumber)) {
                 logger.warn("Invalid card number format for search: {}", cardNumber);
                 auditService.logSecurityEvent(getCurrentUser(), "CARD_SEARCH_INVALID_ID", "READ_ERROR", 
-                    1, createQueryDetails("searchCardByNumber", cardNumber, "INVALID_FORMAT"));
+                    createQueryDetails("searchCardByNumber", cardNumber, "INVALID_FORMAT"));
                 return Optional.empty();
             }
             
@@ -435,7 +425,7 @@ public class CardService {
         } catch (Exception e) {
             logger.error("Error searching card by number: {}", cardNumber, e);
             auditService.logSecurityEvent(getCurrentUser(), "CARD_SEARCH_BY_NUMBER_ERROR", "READ_ERROR", 
-                1, createQueryDetails("searchCardByNumber", cardNumber, "ERROR: " + e.getMessage()));
+                createQueryDetails("searchCardByNumber", cardNumber, "ERROR: " + e.getMessage()));
             throw new RuntimeException("Error searching for card", e);
         }
     }
@@ -455,7 +445,7 @@ public class CardService {
             if (!cardValidator.isValidLuhnCheck(cardNumber)) {
                 logger.warn("Invalid card number format for account info: {}", cardNumber);
                 auditService.logSecurityEvent(getCurrentUser(), "CARD_ACCOUNT_INFO_INVALID_ID", "READ_ERROR", 
-                    1, createQueryDetails("getCardWithAccountInfo", cardNumber, "INVALID_FORMAT"));
+                    createQueryDetails("getCardWithAccountInfo", cardNumber, "INVALID_FORMAT"));
                 throw new IllegalArgumentException("Invalid card number format");
             }
             
@@ -469,7 +459,7 @@ public class CardService {
         } catch (Exception e) {
             logger.error("Error getting card with account info for: {}", cardNumber, e);
             auditService.logSecurityEvent(getCurrentUser(), "CARD_GET_ACCOUNT_INFO_ERROR", "READ_ERROR", 
-                1, createQueryDetails("getCardWithAccountInfo", cardNumber, "ERROR: " + e.getMessage()));
+                createQueryDetails("getCardWithAccountInfo", cardNumber, "ERROR: " + e.getMessage()));
             throw new RuntimeException("Error retrieving card with account information", e);
         }
     }
@@ -489,7 +479,7 @@ public class CardService {
             if (!cardValidator.validateCard(card)) {
                 logger.warn("Card validation failed for creation: {}", card.getCardNumber());
                 auditService.logSecurityEvent(getCurrentUser(), "CARD_CREATE_VALIDATION_ERROR", "CREATE_ERROR", 
-                    1, createQueryDetails("createCard", card.getCardNumber(), "VALIDATION_FAILED"));
+                    createQueryDetails("createCard", card.getCardNumber(), "VALIDATION_FAILED"));
                 throw new IllegalArgumentException(CARD_VALIDATION_ERROR);
             }
             
@@ -497,7 +487,7 @@ public class CardService {
             if (cardRepository.existsByCardNumber(card.getCardNumber())) {
                 logger.warn("Card already exists: {}", card.getCardNumber());
                 auditService.logSecurityEvent(getCurrentUser(), "CARD_CREATE_DUPLICATE", "CREATE_ERROR", 
-                    1, createQueryDetails("createCard", card.getCardNumber(), "DUPLICATE"));
+                    createQueryDetails("createCard", card.getCardNumber(), "DUPLICATE"));
                 throw new IllegalArgumentException("Card already exists");
             }
             
@@ -505,7 +495,7 @@ public class CardService {
             if (!accountRepository.existsById(card.getAccountId())) {
                 logger.warn("Account not found for card creation: {}", card.getAccountId());
                 auditService.logSecurityEvent(getCurrentUser(), "CARD_CREATE_ACCOUNT_NOT_FOUND", "CREATE_ERROR", 
-                    1, createQueryDetails("createCard", card.getCardNumber(), "ACCOUNT_NOT_FOUND"));
+                    createQueryDetails("createCard", card.getCardNumber(), "ACCOUNT_NOT_FOUND"));
                 throw new IllegalArgumentException(ACCOUNT_NOT_FOUND_ERROR);
             }
             
@@ -529,7 +519,7 @@ public class CardService {
         } catch (Exception e) {
             logger.error("Error creating card: {}", card.getCardNumber(), e);
             auditService.logSecurityEvent(getCurrentUser(), "CARD_CREATE_ERROR", "CREATE_ERROR", 
-                1, createQueryDetails("createCard", card.getCardNumber(), "ERROR: " + e.getMessage()));
+                createQueryDetails("createCard", card.getCardNumber(), "ERROR: " + e.getMessage()));
             throw new RuntimeException("Error creating card", e);
         }
     }
@@ -541,7 +531,7 @@ public class CardService {
      * @param cardUpdateDto Card update information
      * @return Updated card entity
      */
-    public Card updateCard(@Valid CardUpdateDTO cardUpdateDto) {
+    public CardDetailDTO updateCard(@Valid CardUpdateDTO cardUpdateDto) {
         logger.debug("Updating card: {}", cardUpdateDto.getCardNumber());
         
         try {
@@ -549,7 +539,7 @@ public class CardService {
             if (!cardUpdateDto.validateCardUpdate()) {
                 logger.warn("Card update validation failed: {}", cardUpdateDto.getCardNumber());
                 auditService.logSecurityEvent(getCurrentUser(), "CARD_UPDATE_VALIDATION_ERROR", "UPDATE_ERROR", 
-                    1, createQueryDetails("updateCard", cardUpdateDto.getCardNumber(), "VALIDATION_FAILED"));
+                    createQueryDetails("updateCard", cardUpdateDto.getCardNumber(), "VALIDATION_FAILED"));
                 throw new IllegalArgumentException(CARD_VALIDATION_ERROR);
             }
             
@@ -558,7 +548,7 @@ public class CardService {
                 1, createQueryDetails("updateCard", cardUpdateDto.getCardNumber(), "SUCCESS"));
             
             // Delegate to specialized service
-            Card updatedCard = cardUpdateService.updateCard(cardUpdateDto);
+            CardDetailDTO updatedCard = cardUpdateService.updateCard(cardUpdateDto);
             
             // Log successful update
             auditService.logDataAccessEvent(getCurrentUser(), "CARDS", "UPDATE", 
@@ -569,7 +559,7 @@ public class CardService {
         } catch (Exception e) {
             logger.error("Error updating card: {}", cardUpdateDto.getCardNumber(), e);
             auditService.logSecurityEvent(getCurrentUser(), "CARD_UPDATE_ERROR", "UPDATE_ERROR", 
-                1, createQueryDetails("updateCard", cardUpdateDto.getCardNumber(), "ERROR: " + e.getMessage()));
+                createQueryDetails("updateCard", cardUpdateDto.getCardNumber(), "ERROR: " + e.getMessage()));
             throw new RuntimeException(CARD_UPDATE_FAILED_ERROR, e);
         }
     }
@@ -582,7 +572,7 @@ public class CardService {
      * @param newStatus New card status (A/I/S)
      * @return Updated card entity
      */
-    public Card updateCardStatus(String cardNumber, String newStatus) {
+    public CardDetailDTO updateCardStatus(String cardNumber, String newStatus) {
         logger.debug("Updating card status: {} to {}", cardNumber, newStatus);
         
         try {
@@ -590,7 +580,7 @@ public class CardService {
             if (!cardValidator.isValidLuhnCheck(cardNumber)) {
                 logger.warn("Invalid card number format for status update: {}", cardNumber);
                 auditService.logSecurityEvent(getCurrentUser(), "CARD_STATUS_UPDATE_INVALID_ID", "UPDATE_ERROR", 
-                    1, createQueryDetails("updateCardStatus", cardNumber, "INVALID_FORMAT"));
+                    createQueryDetails("updateCardStatus", cardNumber, "INVALID_FORMAT"));
                 throw new IllegalArgumentException("Invalid card number format");
             }
             
@@ -598,7 +588,7 @@ public class CardService {
             if (!newStatus.matches("^[AIS]$")) {
                 logger.warn("Invalid card status: {}", newStatus);
                 auditService.logSecurityEvent(getCurrentUser(), "CARD_STATUS_UPDATE_INVALID_STATUS", "UPDATE_ERROR", 
-                    1, createQueryDetails("updateCardStatus", cardNumber, "INVALID_STATUS"));
+                    createQueryDetails("updateCardStatus", cardNumber, "INVALID_STATUS"));
                 throw new IllegalArgumentException("Invalid card status");
             }
             
@@ -607,7 +597,7 @@ public class CardService {
                 1, createQueryDetails("updateCardStatus", cardNumber, "SUCCESS"));
             
             // Delegate to specialized service
-            Card updatedCard = cardUpdateService.updateCardStatus(cardNumber, newStatus);
+            CardDetailDTO updatedCard = cardUpdateService.updateCardStatus(cardNumber, newStatus);
             
             // Log successful status update
             auditService.logDataAccessEvent(getCurrentUser(), "CARDS", "UPDATE", 
@@ -618,7 +608,7 @@ public class CardService {
         } catch (Exception e) {
             logger.error("Error updating card status: {} to {}", cardNumber, newStatus, e);
             auditService.logSecurityEvent(getCurrentUser(), "CARD_STATUS_UPDATE_ERROR", "UPDATE_ERROR", 
-                1, createQueryDetails("updateCardStatus", cardNumber, "ERROR: " + e.getMessage()));
+                createQueryDetails("updateCardStatus", cardNumber, "ERROR: " + e.getMessage()));
             throw new RuntimeException("Error updating card status", e);
         }
     }
@@ -637,7 +627,7 @@ public class CardService {
             if (!cardValidator.isValidLuhnCheck(cardNumber)) {
                 logger.warn("Invalid card number format for deletion: {}", cardNumber);
                 auditService.logSecurityEvent(getCurrentUser(), "CARD_DELETE_INVALID_ID", "DELETE_ERROR", 
-                    1, createQueryDetails("deleteCard", cardNumber, "INVALID_FORMAT"));
+                    createQueryDetails("deleteCard", cardNumber, "INVALID_FORMAT"));
                 throw new IllegalArgumentException("Invalid card number format");
             }
             
@@ -646,7 +636,7 @@ public class CardService {
             if (!cardOptional.isPresent()) {
                 logger.warn("Card not found for deletion: {}", cardNumber);
                 auditService.logSecurityEvent(getCurrentUser(), "CARD_DELETE_NOT_FOUND", "DELETE_ERROR", 
-                    1, createQueryDetails("deleteCard", cardNumber, "NOT_FOUND"));
+                    createQueryDetails("deleteCard", cardNumber, "NOT_FOUND"));
                 throw new IllegalArgumentException("Card not found");
             }
             
@@ -655,7 +645,7 @@ public class CardService {
             if (CARD_STATUS_ACTIVE.equals(card.getCardStatus())) {
                 logger.warn("Cannot delete active card: {}", cardNumber);
                 auditService.logSecurityEvent(getCurrentUser(), "CARD_DELETE_ACTIVE", "DELETE_ERROR", 
-                    1, createQueryDetails("deleteCard", cardNumber, "ACTIVE_CARD"));
+                    createQueryDetails("deleteCard", cardNumber, "ACTIVE_CARD"));
                 throw new IllegalArgumentException("Cannot delete active card");
             }
             
@@ -674,7 +664,7 @@ public class CardService {
         } catch (Exception e) {
             logger.error("Error deleting card: {}", cardNumber, e);
             auditService.logSecurityEvent(getCurrentUser(), "CARD_DELETE_ERROR", "DELETE_ERROR", 
-                1, createQueryDetails("deleteCard", cardNumber, "ERROR: " + e.getMessage()));
+                createQueryDetails("deleteCard", cardNumber, "ERROR: " + e.getMessage()));
             throw new RuntimeException("Error deleting card", e);
         }
     }
@@ -694,7 +684,7 @@ public class CardService {
             if (!cardValidator.isValidLuhnCheck(cardNumber)) {
                 logger.warn("Invalid card number format for access validation: {}", cardNumber);
                 auditService.logSecurityEvent(getCurrentUser(), "CARD_ACCESS_INVALID_ID", "ACCESS_ERROR", 
-                    1, createQueryDetails("validateCardAccess", cardNumber, "INVALID_FORMAT"));
+                    createQueryDetails("validateCardAccess", cardNumber, "INVALID_FORMAT"));
                 return false;
             }
             
@@ -708,7 +698,7 @@ public class CardService {
         } catch (Exception e) {
             logger.error("Error validating card access for: {}", cardNumber, e);
             auditService.logSecurityEvent(getCurrentUser(), "CARD_ACCESS_VALIDATION_ERROR", "ACCESS_ERROR", 
-                1, createQueryDetails("validateCardAccess", cardNumber, "ERROR: " + e.getMessage()));
+                createQueryDetails("validateCardAccess", cardNumber, "ERROR: " + e.getMessage()));
             return false;
         }
     }
@@ -733,7 +723,7 @@ public class CardService {
             
             if (!isValid) {
                 auditService.logSecurityEvent(getCurrentUser(), "CARD_VALIDATION_FAILED", "VALIDATE_ERROR", 
-                    1, createQueryDetails("validateCard", card.getCardNumber(), "VALIDATION_FAILED"));
+                    createQueryDetails("validateCard", card.getCardNumber(), "VALIDATION_FAILED"));
             }
             
             return isValid;
@@ -741,7 +731,7 @@ public class CardService {
         } catch (Exception e) {
             logger.error("Error validating card: {}", card.getCardNumber(), e);
             auditService.logSecurityEvent(getCurrentUser(), "CARD_VALIDATION_ERROR", "VALIDATE_ERROR", 
-                1, createQueryDetails("validateCard", card.getCardNumber(), "ERROR: " + e.getMessage()));
+                createQueryDetails("validateCard", card.getCardNumber(), "ERROR: " + e.getMessage()));
             return false;
         }
     }
@@ -761,7 +751,7 @@ public class CardService {
             if (!cardValidator.isValidLuhnCheck(cardNumber)) {
                 logger.warn("Invalid card number format for history: {}", cardNumber);
                 auditService.logSecurityEvent(getCurrentUser(), "CARD_HISTORY_INVALID_ID", "READ_ERROR", 
-                    1, createQueryDetails("getCardHistory", cardNumber, "INVALID_FORMAT"));
+                    createQueryDetails("getCardHistory", cardNumber, "INVALID_FORMAT"));
                 return new ArrayList<>();
             }
             
@@ -769,7 +759,7 @@ public class CardService {
             if (!validateCardAccess(cardNumber)) {
                 logger.warn("Access denied for card history: {}", cardNumber);
                 auditService.logSecurityEvent(getCurrentUser(), "CARD_HISTORY_ACCESS_DENIED", "READ_ERROR", 
-                    1, createQueryDetails("getCardHistory", cardNumber, "ACCESS_DENIED"));
+                    createQueryDetails("getCardHistory", cardNumber, "ACCESS_DENIED"));
                 return new ArrayList<>();
             }
             
@@ -791,7 +781,7 @@ public class CardService {
         } catch (Exception e) {
             logger.error("Error getting card history for: {}", cardNumber, e);
             auditService.logSecurityEvent(getCurrentUser(), "CARD_HISTORY_ERROR", "READ_ERROR", 
-                1, createQueryDetails("getCardHistory", cardNumber, "ERROR: " + e.getMessage()));
+                createQueryDetails("getCardHistory", cardNumber, "ERROR: " + e.getMessage()));
             throw new RuntimeException("Error retrieving card history", e);
         }
     }
@@ -811,7 +801,7 @@ public class CardService {
             if (!status.matches("^[AIS]$")) {
                 logger.warn("Invalid card status for filtering: {}", status);
                 auditService.logSecurityEvent(getCurrentUser(), "CARD_FILTER_INVALID_STATUS", "READ_ERROR", 
-                    1, createQueryDetails("filterCardsByStatus", status, "INVALID_STATUS"));
+                    createQueryDetails("filterCardsByStatus", status, "INVALID_STATUS"));
                 return new ArrayList<>();
             }
             
@@ -825,7 +815,7 @@ public class CardService {
         } catch (Exception e) {
             logger.error("Error filtering cards by status: {}", status, e);
             auditService.logSecurityEvent(getCurrentUser(), "CARD_FILTER_BY_STATUS_ERROR", "READ_ERROR", 
-                1, createQueryDetails("filterCardsByStatus", status, "ERROR: " + e.getMessage()));
+                createQueryDetails("filterCardsByStatus", status, "ERROR: " + e.getMessage()));
             throw new RuntimeException("Error filtering cards by status", e);
         }
     }
@@ -850,7 +840,7 @@ public class CardService {
         } catch (Exception e) {
             logger.error("Error getting card count", e);
             auditService.logSecurityEvent(getCurrentUser(), "CARD_COUNT_ERROR", "READ_ERROR", 
-                1, createQueryDetails("getCardCount", "ALL", "ERROR: " + e.getMessage()));
+                createQueryDetails("getCardCount", "ALL", "ERROR: " + e.getMessage()));
             throw new RuntimeException("Error getting card count", e);
         }
     }
@@ -870,7 +860,7 @@ public class CardService {
             if (!accountId.matches("^\\d{11}$")) {
                 logger.warn("Invalid account ID format for count: {}", accountId);
                 auditService.logSecurityEvent(getCurrentUser(), "CARD_COUNT_ACCOUNT_INVALID_ID", "READ_ERROR", 
-                    1, createQueryDetails("getCardCountByAccountId", accountId, "INVALID_FORMAT"));
+                    createQueryDetails("getCardCountByAccountId", accountId, "INVALID_FORMAT"));
                 return 0;
             }
             
@@ -883,7 +873,7 @@ public class CardService {
         } catch (Exception e) {
             logger.error("Error getting card count by account ID: {}", accountId, e);
             auditService.logSecurityEvent(getCurrentUser(), "CARD_COUNT_BY_ACCOUNT_ERROR", "READ_ERROR", 
-                1, createQueryDetails("getCardCountByAccountId", accountId, "ERROR: " + e.getMessage()));
+                createQueryDetails("getCardCountByAccountId", accountId, "ERROR: " + e.getMessage()));
             throw new RuntimeException("Error getting card count by account", e);
         }
     }
@@ -905,7 +895,7 @@ public class CardService {
             if (!cardValidator.isValidLuhnCheck(cardNumber)) {
                 logger.warn("Invalid card number format for state transition: {}", cardNumber);
                 auditService.logSecurityEvent(getCurrentUser(), "CARD_STATE_TRANSITION_INVALID_ID", "UPDATE_ERROR", 
-                    1, createQueryDetails("performCardStateTransition", cardNumber, "INVALID_FORMAT"));
+                    createQueryDetails("performCardStateTransition", cardNumber, "INVALID_FORMAT"));
                 throw new IllegalArgumentException("Invalid card number format");
             }
             
@@ -913,7 +903,7 @@ public class CardService {
             if (!fromStatus.matches("^[AIS]$") || !toStatus.matches("^[AIS]$")) {
                 logger.warn("Invalid status values for state transition: {} to {}", fromStatus, toStatus);
                 auditService.logSecurityEvent(getCurrentUser(), "CARD_STATE_TRANSITION_INVALID_STATUS", "UPDATE_ERROR", 
-                    1, createQueryDetails("performCardStateTransition", cardNumber, "INVALID_STATUS"));
+                    createQueryDetails("performCardStateTransition", cardNumber, "INVALID_STATUS"));
                 throw new IllegalArgumentException("Invalid status values");
             }
             
@@ -941,7 +931,7 @@ public class CardService {
         } catch (Exception e) {
             logger.error("Error performing card state transition: {} from {} to {}", cardNumber, fromStatus, toStatus, e);
             auditService.logSecurityEvent(getCurrentUser(), "CARD_STATE_TRANSITION_ERROR", "UPDATE_ERROR", 
-                1, createQueryDetails("performCardStateTransition", cardNumber, "ERROR: " + e.getMessage()));
+                createQueryDetails("performCardStateTransition", cardNumber, "ERROR: " + e.getMessage()));
             throw new RuntimeException("Error performing card state transition", e);
         }
     }
@@ -961,7 +951,7 @@ public class CardService {
             if (!cardValidator.isValidLuhnCheck(cardNumber)) {
                 logger.warn("Invalid card number format for refresh: {}", cardNumber);
                 auditService.logSecurityEvent(getCurrentUser(), "CARD_REFRESH_INVALID_ID", "READ_ERROR", 
-                    1, createQueryDetails("refreshCardData", cardNumber, "INVALID_FORMAT"));
+                    createQueryDetails("refreshCardData", cardNumber, "INVALID_FORMAT"));
                 return Optional.empty();
             }
             
@@ -977,7 +967,7 @@ public class CardService {
                     1, createQueryDetails("refreshCardData", cardNumber, "REFRESHED"));
             } else {
                 auditService.logSecurityEvent(getCurrentUser(), "CARD_REFRESH_NOT_FOUND", "READ_ERROR", 
-                    1, createQueryDetails("refreshCardData", cardNumber, "NOT_FOUND"));
+                    createQueryDetails("refreshCardData", cardNumber, "NOT_FOUND"));
             }
             
             return refreshedCard;
@@ -985,7 +975,7 @@ public class CardService {
         } catch (Exception e) {
             logger.error("Error refreshing card data for: {}", cardNumber, e);
             auditService.logSecurityEvent(getCurrentUser(), "CARD_REFRESH_ERROR", "READ_ERROR", 
-                1, createQueryDetails("refreshCardData", cardNumber, "ERROR: " + e.getMessage()));
+                createQueryDetails("refreshCardData", cardNumber, "ERROR: " + e.getMessage()));
             throw new RuntimeException("Error refreshing card data", e);
         }
     }
@@ -1005,7 +995,7 @@ public class CardService {
             if (!cardValidator.isValidLuhnCheck(cardNumber)) {
                 logger.warn("Card number failed Luhn validation: {}", cardNumber);
                 auditService.logSecurityEvent(getCurrentUser(), "CARD_VALIDITY_LUHN_FAILED", "VALIDATE_ERROR", 
-                    1, createQueryDetails("isCardValid", cardNumber, "LUHN_FAILED"));
+                    createQueryDetails("isCardValid", cardNumber, "LUHN_FAILED"));
                 return false;
             }
             
@@ -1014,7 +1004,7 @@ public class CardService {
             if (!cardOptional.isPresent()) {
                 logger.warn("Card not found for validity check: {}", cardNumber);
                 auditService.logSecurityEvent(getCurrentUser(), "CARD_VALIDITY_NOT_FOUND", "VALIDATE_ERROR", 
-                    1, createQueryDetails("isCardValid", cardNumber, "NOT_FOUND"));
+                    createQueryDetails("isCardValid", cardNumber, "NOT_FOUND"));
                 return false;
             }
             
@@ -1028,7 +1018,7 @@ public class CardService {
         } catch (Exception e) {
             logger.error("Error checking card validity: {}", cardNumber, e);
             auditService.logSecurityEvent(getCurrentUser(), "CARD_VALIDITY_CHECK_ERROR", "VALIDATE_ERROR", 
-                1, createQueryDetails("isCardValid", cardNumber, "ERROR: " + e.getMessage()));
+                createQueryDetails("isCardValid", cardNumber, "ERROR: " + e.getMessage()));
             return false;
         }
     }
@@ -1048,7 +1038,7 @@ public class CardService {
             if (!cardValidator.isValidLuhnCheck(cardNumber)) {
                 logger.warn("Invalid card number format for expiration check: {}", cardNumber);
                 auditService.logSecurityEvent(getCurrentUser(), "CARD_EXPIRATION_INVALID_ID", "VALIDATE_ERROR", 
-                    1, createQueryDetails("isCardExpired", cardNumber, "INVALID_FORMAT"));
+                    createQueryDetails("isCardExpired", cardNumber, "INVALID_FORMAT"));
                 return true; // Treat invalid cards as expired
             }
             
@@ -1057,7 +1047,7 @@ public class CardService {
             if (!cardOptional.isPresent()) {
                 logger.warn("Card not found for expiration check: {}", cardNumber);
                 auditService.logSecurityEvent(getCurrentUser(), "CARD_EXPIRATION_NOT_FOUND", "VALIDATE_ERROR", 
-                    1, createQueryDetails("isCardExpired", cardNumber, "NOT_FOUND"));
+                    createQueryDetails("isCardExpired", cardNumber, "NOT_FOUND"));
                 return true; // Treat non-existent cards as expired
             }
             
@@ -1071,7 +1061,7 @@ public class CardService {
             
             if (isExpired) {
                 auditService.logSecurityEvent(getCurrentUser(), "CARD_EXPIRED", "VALIDATE", 
-                    1, createQueryDetails("isCardExpired", cardNumber, "EXPIRED"));
+                    createQueryDetails("isCardExpired", cardNumber, "EXPIRED"));
             }
             
             return isExpired;
@@ -1079,7 +1069,7 @@ public class CardService {
         } catch (Exception e) {
             logger.error("Error checking card expiration: {}", cardNumber, e);
             auditService.logSecurityEvent(getCurrentUser(), "CARD_EXPIRATION_CHECK_ERROR", "VALIDATE_ERROR", 
-                1, createQueryDetails("isCardExpired", cardNumber, "ERROR: " + e.getMessage()));
+                createQueryDetails("isCardExpired", cardNumber, "ERROR: " + e.getMessage()));
             return true; // Treat errors as expired for safety
         }
     }

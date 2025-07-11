@@ -102,7 +102,7 @@ public class CardValidator {
      * @param card The Card entity to validate
      * @throws CardValidationException if validation fails
      */
-    public void validateCard(@Valid Card card) {
+    public boolean validateCard(@Valid Card card) {
         logger.debug("Starting comprehensive card validation for card: {}", 
                     card != null ? card.getCardNumber() : "null");
         
@@ -169,6 +169,7 @@ public class CardValidator {
         }
         
         logger.debug("Card validation completed successfully for card: {}", card.getCardNumber());
+        return hasErrors;
     }
     
     /**

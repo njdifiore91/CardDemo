@@ -31,7 +31,7 @@ COPY src ./src
 # Build the application using Maven
 # Skip tests during Docker build for faster builds (tests run in CI/CD pipeline)
 # Use production profile for optimized build
-RUN mvn clean package -DskipTests -Pprod -B
+RUN mvn clean package -DskipTests -Pprod -B -Ddockerfile.skip=true
 
 # Verify the JAR file was created successfully
 RUN ls -la target/ && \

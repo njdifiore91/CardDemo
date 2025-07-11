@@ -513,8 +513,8 @@ spring:
   # Development-specific database configuration
   datasource:
     url: jdbc:postgresql://localhost:5432/carddemo_dev
-    username: carddemo_dev
-    password: carddemo_dev
+    username: postgres
+    password: postgres
     hikari:
       maximum-pool-size: 10
       minimum-idle: 2

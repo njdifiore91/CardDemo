@@ -33,9 +33,6 @@
 -- DISCGRP.VSAM.KSDS (KEYLEN=16, 51 records) -> discount_groups table
 -- =============================================================================
 
--- Set transaction isolation for schema creation consistency
-SET TRANSACTION ISOLATION LEVEL SERIALIZABLE;
-
 -- =============================================================================
 -- 1. CORE MASTER DATA TABLES
 -- =============================================================================

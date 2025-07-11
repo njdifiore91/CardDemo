@@ -259,9 +259,10 @@ public class TransactionBatchConfig {
      * - Real-time monitoring and alerting for SLA compliance
      * 
      * @return Job configured for daily transaction processing
+     * @throws Exception 
      */
     @Bean
-    public Job dailyTransactionProcessingJob() {
+    public Job dailyTransactionProcessingJob() throws Exception {
         logger.info("Configuring daily transaction processing job for 5M+ transactions within 120-minute SLA");
 
         return new JobBuilder("dailyTransactionProcessingJob", batchJobConfig.jobRepository())
@@ -288,9 +289,10 @@ public class TransactionBatchConfig {
      * - Prepare validated transactions for posting
      * 
      * @return Job configured for transaction initialization
+     * @throws Exception 
      */
     @Bean
-    public Job transactionInitializationJob() {
+    public Job transactionInitializationJob() throws Exception {
         logger.info("Configuring transaction initialization job (CBTRN01C conversion)");
 
         return new JobBuilder("transactionInitializationJob", batchJobConfig.jobRepository())
@@ -315,9 +317,10 @@ public class TransactionBatchConfig {
      * - Update report generation audit logs
      * 
      * @return Job configured for transaction reporting
+     * @throws Exception 
      */
     @Bean
-    public Job transactionReportingJob() {
+    public Job transactionReportingJob() throws Exception {
         logger.info("Configuring transaction reporting job (CBTRN03C conversion)");
 
         return new JobBuilder("transactionReportingJob", batchJobConfig.jobRepository())
@@ -349,9 +352,10 @@ public class TransactionBatchConfig {
      * - Comprehensive error handling and skip logic
      * 
      * @return Step configured for transaction initialization processing
+     * @throws Exception 
      */
     @Bean
-    public Step transactionInitializationStep() {
+    public Step transactionInitializationStep() throws Exception {
         logger.info("Configuring transaction initialization step with chunk size: {}", INITIALIZATION_CHUNK_SIZE);
 
         return new StepBuilder("transactionInitializationStep", batchJobConfig.jobRepository())
@@ -386,9 +390,10 @@ public class TransactionBatchConfig {
      * - Bulk insert operations for high-volume transaction posting
      * 
      * @return Step configured for transaction posting processing
+     * @throws Exception 
      */
     @Bean
-    public Step transactionPostingStep() {
+    public Step transactionPostingStep() throws Exception {
         logger.info("Configuring transaction posting step with chunk size: {}", TRANSACTION_CHUNK_SIZE);
 
         return new StepBuilder("transactionPostingStep", batchJobConfig.jobRepository())
@@ -423,9 +428,10 @@ public class TransactionBatchConfig {
      * - Memory-efficient PDF generation with compression
      * 
      * @return Step configured for transaction reporting
+     * @throws Exception 
      */
     @Bean
-    public Step transactionReportingStep() {
+    public Step transactionReportingStep() throws Exception {
         logger.info("Configuring transaction reporting step with chunk size: {}", REPORTING_CHUNK_SIZE);
 
         return new StepBuilder("transactionReportingStep", batchJobConfig.jobRepository())

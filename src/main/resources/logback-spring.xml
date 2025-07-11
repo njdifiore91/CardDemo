@@ -47,9 +47,9 @@
         <property name="ENVIRONMENT" value="test"/>
     </springProfile>
     
-    <!-- Common logging patterns -->
+    <!-- Common logging patterns - FIXED: Removed Spring Boot specific patterns -->
     <property name="CONSOLE_LOG_PATTERN" 
-              value="%clr(%d{yyyy-MM-dd HH:mm:ss.SSS}){faint} %clr(${LOG_LEVEL_PATTERN:-%5p}) %clr(${PID:- }){magenta} %clr(---){faint} %clr([%15.15t]){faint} %clr(%-40.40logger{39}){cyan} %clr(:){faint} %m%n${LOG_EXCEPTION_CONVERSION_WORD:-%wEx}"/>
+              value="%d{yyyy-MM-dd HH:mm:ss.SSS} %5p ${PID:- } --- [%15.15t] %-40.40logger{39} : %m%n%ex"/>
     
     <!-- Correlation ID pattern for distributed tracing -->
     <property name="CORRELATION_ID_PATTERN" 

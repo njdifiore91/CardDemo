@@ -121,7 +121,6 @@ public class DatabaseConfig {
      */
     @Bean
     @Primary
-    @ConfigurationProperties(prefix = "spring.datasource.hikari")
     public DataSource dataSource() {
         HikariConfig config = new HikariConfig();
         

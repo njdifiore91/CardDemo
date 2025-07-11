@@ -2,6 +2,7 @@ package com.carddemo.card;
 
 import org.springframework.stereotype.Service;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.transaction.annotation.Transactional;
 import java.util.Optional;
 import org.slf4j.LoggerFactory;
@@ -89,8 +90,8 @@ public class CardDetailService {
      */
     @Autowired
     public CardDetailService(
-            CardRepository cardRepository,
-            AccountRepository accountRepository,
+            @Lazy CardRepository cardRepository,
+            @Lazy AccountRepository accountRepository,
             CardValidator cardValidator,
             AuditService auditService,
             SessionManagementService sessionManagementService) {

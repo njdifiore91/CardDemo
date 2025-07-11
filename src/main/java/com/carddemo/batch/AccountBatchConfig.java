@@ -6,6 +6,7 @@ import com.carddemo.audit.AuditService;
 import com.carddemo.service.ReportService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.StepContribution;
@@ -113,6 +114,7 @@ public class AccountBatchConfig {
     private BatchJobConfig batchJobConfig;
     
     @Autowired
+    @Lazy
     private AccountRepository accountRepository;
     
     @Autowired
@@ -238,8 +240,9 @@ public class AccountBatchConfig {
      * - Comprehensive error handling and recovery
      * 
      * @return Step configured for account data loading
+     * @throws Exception 
      */
-    private Step createAccountDataLoadStep() {
+    private Step createAccountDataLoadStep() throws Exception {
         logger.info("Creating account data loading step with chunk size: {}", chunkSize);
         
         return new StepBuilder("accountDataLoadStep", batchJobConfig.jobRepository())
@@ -261,8 +264,9 @@ public class AccountBatchConfig {
      * - Performance optimization for large datasets
      * 
      * @return Step configured for cross-reference processing
+     * @throws Exception 
      */
-    private Step createAccountXrefProcessingStep() {
+    private Step createAccountXrefProcessingStep() throws Exception {
         logger.info("Creating account cross-reference processing step");
         
         return new StepBuilder("accountXrefProcessingStep", batchJobConfig.jobRepository())
@@ -284,8 +288,9 @@ public class AccountBatchConfig {
      * - Optimistic locking for concurrent processing
      * 
      * @return Step configured for interest calculation
+     * @throws Exception 
      */
-    private Step createInterestCalculationStep() {
+    private Step createInterestCalculationStep() throws Exception {
         logger.info("Creating interest calculation step with annual rate: {}", ANNUAL_INTEREST_RATE);
         
         return new StepBuilder("interestCalculationStep", batchJobConfig.jobRepository())
@@ -304,8 +309,9 @@ public class AccountBatchConfig {
      * - Report distribution and archival
      * 
      * @return Step configured for account reporting
+     * @throws Exception 
      */
-    private Step createAccountReportingStep() {
+    private Step createAccountReportingStep() throws Exception {
         logger.info("Creating account reporting step with output path: {}", reportOutputPath);
         
         return new StepBuilder("accountReportingStep", batchJobConfig.jobRepository())

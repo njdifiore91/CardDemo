@@ -3,6 +3,8 @@ package com.carddemo.card;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
+
 import jakarta.validation.Valid;
 import java.util.Optional;
 import org.slf4j.LoggerFactory;
@@ -94,11 +96,11 @@ public class CardUpdateService {
      * @param accountRepository Repository for account data access operations
      */
     @Autowired
-    public CardUpdateService(CardRepository cardRepository, 
+    public CardUpdateService(@Lazy CardRepository cardRepository, 
                            CardValidator cardValidator,
                            AuditService auditService,
                            SessionManagementService sessionManagementService,
-                           AccountRepository accountRepository) {
+                           @Lazy AccountRepository accountRepository) {
         this.cardRepository = cardRepository;
         this.cardValidator = cardValidator;
         this.auditService = auditService;
@@ -341,7 +343,7 @@ public class CardUpdateService {
      * @param newStatus New card status to transition to
      * @throws CardValidationException if state transition is invalid
      */
-    public void performCardStateTransition(Card card, String newStatus) {
+    public Card performCardStateTransition(Card card, String newStatus) {
         logger.debug("Performing card state transition for card: {} from {} to {}", 
                     card.getCardNumber(), card.getCardStatus(), newStatus);
         
@@ -367,6 +369,7 @@ public class CardUpdateService {
         }
         
         logger.debug("Card state transition completed successfully");
+        return card;
     }
 
     /**

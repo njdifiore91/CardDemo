@@ -45,8 +45,8 @@ spring:
   datasource:
     # Development database connection (single-node PostgreSQL)
     url: jdbc:postgresql://localhost:5432/carddemo_dev
-    username: carddemo_dev
-    password: carddemo_dev
+    username: postgres
+    password: postgres
     driver-class-name: org.postgresql.Driver
     
     # HikariCP Connection Pool - Development Configuration

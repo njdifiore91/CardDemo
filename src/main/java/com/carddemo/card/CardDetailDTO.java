@@ -402,4 +402,8 @@ public class CardDetailDTO {
                 ", cvvMasked=" + cvvMasked +
                 '}';
     }
+
+	public Integer getVersionNumber() {
+		return null;
+	}
 }

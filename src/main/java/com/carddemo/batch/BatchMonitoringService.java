@@ -1,40 +1,38 @@
 package com.carddemo.batch;
 
-import com.carddemo.audit.AuditService;
-import org.springframework.batch.core.JobExecution;
-import org.springframework.batch.core.JobInstance;
-import org.springframework.batch.core.JobParameters;
-import org.springframework.batch.core.BatchStatus;
-import org.springframework.batch.core.ExitStatus;
-import org.springframework.batch.core.explore.JobExplorer;
-import org.springframework.batch.core.repository.JobRepository;
-import org.springframework.batch.core.launch.JobLauncher;
-import org.springframework.boot.actuate.health.Health;
-import org.springframework.boot.actuate.health.HealthIndicator;
-import org.springframework.boot.actuate.health.Status;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.stereotype.Component;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import io.micrometer.core.instrument.Counter;
-import io.micrometer.core.instrument.Timer;
-import io.micrometer.core.instrument.Gauge;
-import io.micrometer.core.instrument.MeterRegistry;
-
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.HashMap;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.batch.core.BatchStatus;
+import org.springframework.batch.core.ExitStatus;
+import org.springframework.batch.core.JobExecution;
+import org.springframework.batch.core.JobInstance;
+import org.springframework.batch.core.JobParameters;
+import org.springframework.batch.core.explore.JobExplorer;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.actuate.health.Health;
+import org.springframework.boot.actuate.health.HealthIndicator;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Component;
+
+import com.carddemo.audit.AuditService;
+
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.Gauge;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Timer;
 
 /**
  * Comprehensive batch job monitoring service providing real-time execution tracking, SLA compliance
@@ -166,9 +164,9 @@ public class BatchMonitoringService {
                 .description("Batch job execution duration")
                 .register(meterRegistry);
         
-        this.activeJobsGauge = Gauge.builder("batch.jobs.active")
+        this.activeJobsGauge = Gauge.builder("batch.jobs.active", this, BatchMonitoringService::getActiveJobCount)
                 .description("Number of currently active batch jobs")
-                .register(meterRegistry, this, BatchMonitoringService::getActiveJobCount);
+                .register(meterRegistry);
 
         logger.info("BatchMonitoringService initialized with SLA thresholds: Batch Window={}h, Account={}min, Transaction={}min",
                 BATCH_WINDOW_SLA.toHours(), ACCOUNT_BATCH_SLA.toMinutes(), TRANSACTION_BATCH_SLA.toMinutes());
@@ -191,7 +189,7 @@ public class BatchMonitoringService {
             JobExplorer jobExplorer = batchJobConfig.jobExplorer();
             
             // Get recent job executions
-            List<JobExecution> executions = jobExplorer.findRunningJobExecutions(jobName);
+            Set<JobExecution> executions = jobExplorer.findRunningJobExecutions(jobName);
             JobExecution latestExecution = getLatestJobExecution(jobName);
             
             // Populate basic status information
@@ -260,7 +258,7 @@ public class BatchMonitoringService {
             
             // Get running executions for each job
             for (String jobName : jobNames) {
-                List<JobExecution> runningExecutions = jobExplorer.findRunningJobExecutions(jobName);
+                Set<JobExecution> runningExecutions = jobExplorer.findRunningJobExecutions(jobName);
                 if (!runningExecutions.isEmpty()) {
                     allJobs.put(jobName, getBatchJobStatus(jobName));
                 }
@@ -689,6 +687,115 @@ public class BatchMonitoringService {
             logger.error("Error recording metrics for job {}: {}", jobName, e.getMessage(), e);
         }
     }
+    /**
+     * Records job metrics for custom job events, trying to use existing JobExecution first.
+     * 
+     * @param jobName The name of the job
+     * @param status The job status (STARTED, COMPLETED, FAILED)
+     * @param startTime The job start time
+     * @param endTime The job end time (can be null for STARTED status)
+     */
+    public void recordJobMetrics(String jobName, String status, LocalDateTime startTime, LocalDateTime endTime) {
+        try {
+            // First, try to get existing JobExecution
+            JobExecution existingExecution = getLatestJobExecution(jobName);
+            
+            if (existingExecution != null) {
+                // Update existing JobExecution with new information
+                updateJobExecution(existingExecution, status, startTime, endTime);
+                
+                // Use the existing recordJobMetrics method
+                recordJobMetrics(jobName, existingExecution);
+                
+            } else {
+                // No existing execution found, create a mock one
+                logger.debug("No existing JobExecution found for {}, creating mock execution", jobName);
+                JobExecution mockExecution = createMockJobExecution(jobName, status, startTime, endTime);
+                
+                // Use the existing recordJobMetrics method
+                recordJobMetrics(jobName, mockExecution);
+            }
+            
+        } catch (Exception e) {
+            logger.error("Error recording job metrics for {}: {}", jobName, e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Updates an existing JobExecution with new status and timing information.
+     */
+    private void updateJobExecution(JobExecution execution, String status, LocalDateTime startTime, LocalDateTime endTime) {
+        // Update start time if provided and not already set
+        if (startTime != null && execution.getStartTime() == null) {
+            execution.setStartTime(startTime);
+        }
+        
+        // Update end time if provided
+        if (endTime != null) {
+            execution.setEndTime(endTime);
+        }
+        
+        // Update status
+        switch (status.toUpperCase()) {
+            case "STARTED":
+                if (execution.getStatus() != BatchStatus.STARTED) {
+                    execution.setStatus(BatchStatus.STARTED);
+                }
+                break;
+            case "COMPLETED":
+                execution.setStatus(BatchStatus.COMPLETED);
+                execution.setExitStatus(ExitStatus.COMPLETED);
+                break;
+            case "FAILED":
+                execution.setStatus(BatchStatus.FAILED);
+                execution.setExitStatus(ExitStatus.FAILED);
+                break;
+            default:
+                logger.warn("Unknown job status: {}", status);
+                break;
+        }
+    }
+
+    /**
+     * Creates a mock JobExecution for custom job metrics recording.
+     * This is used as a fallback when no existing JobExecution is found.
+     */
+    private JobExecution createMockJobExecution(String jobName, String status, LocalDateTime startTime, LocalDateTime endTime) {
+        // Create JobInstance
+        JobInstance jobInstance = new JobInstance(System.currentTimeMillis(), jobName);
+        
+        // Create JobParameters (empty for custom jobs)
+        JobParameters jobParameters = new JobParameters();
+        
+        // Create JobExecution
+        JobExecution jobExecution = new JobExecution(jobInstance, jobParameters);
+        
+        // Set times
+        jobExecution.setStartTime(startTime);
+        if (endTime != null) {
+            jobExecution.setEndTime(endTime);
+        }
+        
+        // Set status
+        switch (status.toUpperCase()) {
+            case "STARTED":
+                jobExecution.setStatus(BatchStatus.STARTED);
+                break;
+            case "COMPLETED":
+                jobExecution.setStatus(BatchStatus.COMPLETED);
+                jobExecution.setExitStatus(ExitStatus.COMPLETED);
+                break;
+            case "FAILED":
+                jobExecution.setStatus(BatchStatus.FAILED);
+                jobExecution.setExitStatus(ExitStatus.FAILED);
+                break;
+            default:
+                jobExecution.setStatus(BatchStatus.UNKNOWN);
+                break;
+        }
+        
+        return jobExecution;
+    }
 
     /**
      * Checks the health of batch job dependencies.
@@ -944,7 +1051,7 @@ public class BatchMonitoringService {
 
     private boolean checkJobLauncherHealth() {
         try {
-            batchJobConfig.jobLauncher();
+            batchJobConfig.jobLauncher(batchJobConfig.jobRepository());
             return true;
         } catch (Exception e) {
             logger.error("Job launcher health check failed: {}", e.getMessage());
