@@ -159,8 +159,6 @@ public class DatabaseConfig {
         config.addDataSourceProperty("elideSetAutoCommits", "true");
         config.addDataSourceProperty("maintainTimeStats", "false");
         
-        // Enable JMX monitoring for connection pool metrics
-        config.setRegisterMbeans(true);
         
         return new HikariDataSource(config);
     }

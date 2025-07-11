@@ -28,50 +28,42 @@
 
 package com.carddemo.batch;
 
-import com.carddemo.transaction.Transaction;
-import com.carddemo.batch.BatchJobConfig;
-import com.carddemo.batch.BatchUtilityService;
-import com.carddemo.batch.FileProcessingService;
-import com.carddemo.batch.BatchMonitoringService;
-import com.carddemo.entity.Customer;
-import com.carddemo.service.ReportService;
-import com.carddemo.account.Account;
-
-import org.springframework.stereotype.Service;
-import org.springframework.batch.core.Job;
-import org.springframework.batch.core.Step;
-import org.springframework.batch.core.job.builder.JobBuilder;
-import org.springframework.batch.core.step.builder.StepBuilder;
-import org.springframework.batch.core.repository.JobRepository;
-import org.springframework.batch.core.launch.JobLauncher;
-import org.springframework.batch.item.ItemReader;
-import org.springframework.batch.item.ItemProcessor;
-import org.springframework.batch.item.ItemWriter;
-import org.springframework.batch.item.database.JpaPagingItemReader;
-import org.springframework.batch.item.database.builder.JpaPagingItemReaderBuilder;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.scheduling.annotation.Async;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.transaction.PlatformTransactionManager;
-
-import jakarta.persistence.EntityManagerFactory;
-import java.util.List;
+import java.math.BigDecimal;
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.Map;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
-import java.math.BigDecimal;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.time.Duration;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.batch.core.Job;
+import org.springframework.batch.core.Step;
+import org.springframework.batch.core.job.builder.JobBuilder;
+import org.springframework.batch.core.repository.JobRepository;
+import org.springframework.batch.core.step.builder.StepBuilder;
+import org.springframework.batch.item.ItemProcessor;
+import org.springframework.batch.item.ItemReader;
+import org.springframework.batch.item.ItemWriter;
+import org.springframework.batch.item.database.builder.JpaPagingItemReaderBuilder;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.PlatformTransactionManager;
+
+import com.carddemo.account.Account;
+import com.carddemo.service.ReportService;
+import com.carddemo.transaction.Transaction;
+
+import jakarta.persistence.EntityManagerFactory;
 
 /**
  * Spring Batch service for statement generation converted from COBOL batch programs CBSTM03A/B.
@@ -117,22 +109,15 @@ public class StatementBatchService {
     private BatchJobConfig batchJobConfig;
     
     @Autowired
-    private BatchUtilityService batchUtilityService;
-    
-    @Autowired
-    private FileProcessingService fileProcessingService;
-    
-    @Autowired
     private BatchMonitoringService batchMonitoringService;
     
     @Autowired
+    @Lazy
     private ReportService reportService;
     
     @Autowired
+    @Lazy
     private JobRepository jobRepository;
-    
-    @Autowired
-    private JobLauncher jobLauncher;
     
     @Autowired
     private PlatformTransactionManager transactionManager;

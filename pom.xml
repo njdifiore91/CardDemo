@@ -134,13 +134,6 @@
             <version>${spring-session.version}</version>
         </dependency>
         
-        <!-- Spring Cloud Gateway for API routing and cross-cutting concerns -->
-        <dependency>
-            <groupId>org.springframework.cloud</groupId>
-            <artifactId>spring-cloud-starter-gateway</artifactId>
-            <version>${spring-cloud-gateway.version}</version>
-        </dependency>
-        
         <!-- Database dependencies -->
         <dependency>
             <groupId>org.postgresql</groupId>
@@ -215,12 +208,12 @@
         </dependency>
 
         <!-- Development tools -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-devtools</artifactId>
-            <scope>runtime</scope>
-            <optional>true</optional>
-        </dependency>
+<!--        <dependency>-->
+<!--            <groupId>org.springframework.boot</groupId>-->
+<!--            <artifactId>spring-boot-devtools</artifactId>-->
+<!--            <scope>runtime</scope>-->
+<!--            <optional>true</optional>-->
+<!--        </dependency>-->
         
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -284,6 +277,24 @@
 		    <artifactId>logstash-logback-encoder</artifactId>
 		    <version>7.4</version>
 		</dependency>
+		
+		<dependency>
+		    <groupId>org.springframework.boot</groupId>
+		    <artifactId>spring-boot-starter-data-redis</artifactId>
+		</dependency>
+		
+		<dependency>
+		    <groupId>jakarta.servlet</groupId>
+		    <artifactId>jakarta.servlet-api</artifactId>
+		    <scope>provided</scope>
+		</dependency>
+		
+		<dependency>
+		    <groupId>org.springdoc</groupId>
+		    <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+		    <version>2.6.0</version>
+		</dependency>
+		
     </dependencies>
     
     <build>

@@ -8,11 +8,13 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.batch.core.Job;
+import org.springframework.batch.core.JobExecutionListener;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.StepContribution;
 import org.springframework.batch.core.scope.context.ChunkContext;
 import org.springframework.batch.core.step.tasklet.Tasklet;
 import org.springframework.batch.core.job.builder.JobBuilder;
+import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.batch.core.step.builder.StepBuilder;
 import org.springframework.batch.item.ItemReader;
 import org.springframework.batch.item.ItemProcessor;
@@ -30,6 +32,7 @@ import org.springframework.batch.item.file.transform.FixedLengthTokenizer;
 import org.springframework.batch.item.file.transform.Range;
 import org.springframework.batch.repeat.RepeatStatus;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.data.domain.PageRequest;
@@ -127,6 +130,7 @@ public class AccountBatchConfig {
     private AuditService auditService;
     
     @Autowired
+    @Lazy
     private ReportService reportService;
     
     @Autowired
@@ -153,13 +157,13 @@ public class AccountBatchConfig {
      * @throws Exception if job configuration fails
      */
     @Bean
-    public Job accountDataLoadJob() throws Exception {
+    public Job accountDataLoadJob(JobRepository jobRepository, @Qualifier("commonJobListener") JobExecutionListener jobExecutionListener) throws Exception {
         logger.info("Configuring account data loading job (CBACT01C equivalent)");
         
-        return new JobBuilder("accountDataLoadJob", batchJobConfig.jobRepository())
+        return new JobBuilder("accountDataLoadJob", jobRepository)
                 .start(createAccountDataLoadStep())
                 .next(createAccountXrefProcessingStep())
-                .listener(batchJobConfig.commonJobListener())
+                .listener(jobExecutionListener)
                 .build();
     }
 

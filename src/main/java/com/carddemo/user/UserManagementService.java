@@ -6,6 +6,7 @@
 package com.carddemo.user;
 
 import com.carddemo.entity.User;
+import com.carddemo.entity.User.UserStatus;
 import com.carddemo.repository.UserRepository;
 import com.carddemo.audit.AuditService;
 
@@ -286,8 +287,8 @@ public class UserManagementService {
             user.setPasswordHash(hashedPassword);
             
             // Set default status if not provided
-            if (user.getStatus() == null || user.getStatus().trim().isEmpty()) {
-                user.setStatus("ACTIVE");
+            if (user.getStatus() == null) {
+                user.setStatus(UserStatus.ACTIVE);
             }
             
             // Save user to database
@@ -787,15 +788,15 @@ public class UserManagementService {
             }
             
             User user = userOptional.get();
-            user.setStatus("ACTIVE");
+            user.setStatus(UserStatus.ACTIVE);
             userRepository.save(user);
             
             // Log user activation
             String currentUser = getCurrentUsername();
             Map<String, Object> operationDetails = new HashMap<>();
             operationDetails.put("operation", "ACTIVATE");
-            operationDetails.put("previous_status", "INACTIVE");
-            operationDetails.put("new_status", "ACTIVE");
+            operationDetails.put("previous_status", UserStatus.INACTIVE);
+            operationDetails.put("new_status", UserStatus.ACTIVE);
             operationDetails.put("activation_timestamp", LocalDateTime.now());
             
             auditService.logUserManagementOperation(
@@ -847,14 +848,14 @@ public class UserManagementService {
                 throw new RuntimeException("Cannot deactivate your own user account");
             }
             
-            user.setStatus("INACTIVE");
+            user.setStatus(UserStatus.INACTIVE);
             userRepository.save(user);
             
             // Log user deactivation
             Map<String, Object> operationDetails = new HashMap<>();
             operationDetails.put("operation", "DEACTIVATE");
-            operationDetails.put("previous_status", "ACTIVE");
-            operationDetails.put("new_status", "INACTIVE");
+            operationDetails.put("previous_status", UserStatus.ACTIVE);
+            operationDetails.put("new_status", UserStatus.INACTIVE);
             operationDetails.put("deactivation_timestamp", LocalDateTime.now());
             
             auditService.logUserManagementOperation(
@@ -969,13 +970,13 @@ public class UserManagementService {
         }
         
         // Validate status
-        if (user.getStatus() == null || user.getStatus().trim().isEmpty()) {
+        if (user.getStatus() == null) {
             throw new RuntimeException("Status cannot be empty");
         }
         
         // Validate status values
-        if (!"ACTIVE".equals(user.getStatus()) && !"INACTIVE".equals(user.getStatus()) && 
-            !"LOCKED".equals(user.getStatus())) {
+        if (!UserStatus.ACTIVE.equals(user.getStatus()) && !UserStatus.INACTIVE.equals(user.getStatus()) && 
+            !UserStatus.LOCKED.equals(user.getStatus())) {
             throw new RuntimeException("Status must be 'ACTIVE', 'INACTIVE', or 'LOCKED'");
         }
         

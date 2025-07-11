@@ -6,6 +6,7 @@
 package com.carddemo.auth;
 
 import com.carddemo.entity.User;
+import com.carddemo.entity.User.UserStatus;
 import com.carddemo.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.GrantedAuthority;
@@ -111,7 +112,6 @@ public class AuthenticationService implements UserDetailsService {
     private static final String ROLE_PREFIX = "ROLE_";
     private static final String ROLE_ADMIN = "ROLE_ADMIN";
     private static final String ROLE_USER = "ROLE_USER";
-    private static final String ACTIVE_STATUS = "ACTIVE";
     
     // JWT Configuration
     private static final String JWT_SUBJECT = "sub";
@@ -192,16 +192,16 @@ public class AuthenticationService implements UserDetailsService {
 
         // Query users table with status validation (equivalent to CICS READ)
         Optional<User> userOptional = userRepository.findByUsernameAndStatus(
-            username.toUpperCase(), ACTIVE_STATUS);
+            username.toUpperCase(), UserStatus.ACTIVE);
         
         if (userOptional.isEmpty()) {
             // Check if user exists but is inactive/locked
             Optional<User> inactiveUser = userRepository.findByUsername(username.toUpperCase());
             if (inactiveUser.isPresent()) {
                 User user = inactiveUser.get();
-                if ("LOCKED".equals(user.getStatus())) {
+                if (UserStatus.LOCKED.equals(user.getStatus())) {
                     throw new UsernameNotFoundException(ERROR_ACCOUNT_LOCKED);
-                } else if ("INACTIVE".equals(user.getStatus())) {
+                } else if (UserStatus.INACTIVE.equals(user.getStatus())) {
                     throw new UsernameNotFoundException(ERROR_ACCOUNT_INACTIVE);
                 }
             }
@@ -262,20 +262,20 @@ public class AuthenticationService implements UserDetailsService {
             }
 
             // Normalize username to uppercase (matching COBOL FUNCTION UPPER-CASE)
-            String normalizedUsername = username.trim().toUpperCase();
+            String normalizedUsername = username.trim();
             
             // Query users table for authentication (equivalent to CICS READ)
             Optional<User> userOptional = userRepository.findByUsernameAndStatus(
-                normalizedUsername, ACTIVE_STATUS);
+                normalizedUsername, UserStatus.ACTIVE);
             
             if (userOptional.isEmpty()) {
                 // Check if user exists but is inactive/locked for specific error messages
                 Optional<User> inactiveUser = userRepository.findByUsername(normalizedUsername);
                 if (inactiveUser.isPresent()) {
                     User user = inactiveUser.get();
-                    if ("LOCKED".equals(user.getStatus())) {
+                    if (UserStatus.LOCKED.equals(user.getStatus())) {
                         throw new AccountStatusException(ERROR_ACCOUNT_LOCKED);
-                    } else if ("INACTIVE".equals(user.getStatus())) {
+                    } else if (UserStatus.INACTIVE.equals(user.getStatus())) {
                         throw new AccountStatusException(ERROR_ACCOUNT_INACTIVE);
                     }
                 }
@@ -466,9 +466,9 @@ public class AuthenticationService implements UserDetailsService {
             .password(user.getPasswordHash())
             .authorities(authorities)
             .accountExpired(false)
-            .accountLocked("LOCKED".equals(user.getStatus()))
+            .accountLocked(UserStatus.LOCKED.equals(user.getStatus()))
             .credentialsExpired(false)
-            .disabled(!"ACTIVE".equals(user.getStatus()))
+            .disabled(!UserStatus.ACTIVE.equals(user.getStatus()))
             .build();
     }
 

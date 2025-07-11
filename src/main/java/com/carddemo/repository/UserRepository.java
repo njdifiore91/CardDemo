@@ -6,6 +6,8 @@
 package com.carddemo.repository;
 
 import com.carddemo.entity.User;
+import com.carddemo.entity.User.UserStatus;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -148,7 +150,7 @@ public interface UserRepository extends JpaRepository<User, UUID> {
      * @param status Account status filter (ACTIVE, INACTIVE, LOCKED)
      * @return Optional<User> containing the active user if found, empty otherwise
      */
-    Optional<User> findByUsernameAndStatus(String username, String status);
+    Optional<User> findByUsernameAndStatus(String username, UserStatus status);
 
     /**
      * Finds all users with a specific role code for administrative queries.
@@ -265,7 +267,7 @@ public interface UserRepository extends JpaRepository<User, UUID> {
      * @param status Account status filter (ACTIVE, INACTIVE, LOCKED)
      * @return List<User> containing all users with the specified status
      */
-    List<User> findByStatus(String status);
+    List<User> findByStatus(UserStatus status);
 
     /**
      * Finds all users with a specific role code and account status.
@@ -289,7 +291,7 @@ public interface UserRepository extends JpaRepository<User, UUID> {
      * @param status Account status filter (ACTIVE, INACTIVE, LOCKED)
      * @return List<User> containing users matching both criteria
      */
-    List<User> findByRoleCodeAndStatus(String roleCode, String status);
+    List<User> findByRoleCodeAndStatus(String roleCode, UserStatus status);
 
     /**
      * Counts the total number of active users in the system.
@@ -312,7 +314,7 @@ public interface UserRepository extends JpaRepository<User, UUID> {
      * 
      * @return long count of active users
      */
-    long countByStatus(String status);
+    long countByStatus(UserStatus status);
 
     /**
      * Custom query to find users by role code with pagination support.

@@ -72,7 +72,7 @@ public class User {
      * Must be unique across all users and cannot be null.
      * Maximum length of 50 characters (expanded from original 8-character limit).
      */
-    @Column(name = "username", length = 50, nullable = false, unique = true)
+    @Column(name = "user_name", length = 50, nullable = false, unique = true)
     @NotBlank(message = "Username is required")
     @Size(min = 1, max = 50, message = "Username must be between 1 and 50 characters")
     private String username;
@@ -82,7 +82,7 @@ public class User {
      * Provides enterprise-grade security with strength factor 10.
      * Maximum length of 255 characters to accommodate BCrypt hash format.
      */
-    @Column(name = "password_hash", length = 255, nullable = false)
+    @Column(name = "user_password", length = 100, nullable = false)
     @NotBlank(message = "Password hash is required")
     @Size(max = 255, message = "Password hash cannot exceed 255 characters")
     private String passwordHash;
@@ -93,7 +93,7 @@ public class User {
      * 'U' = Regular User (ROLE_USER in Spring Security)
      * Database constraint ensures only valid values are stored.
      */
-    @Column(name = "role_code", length = 1, nullable = false)
+    @Column(name = "user_type", length = 10, nullable = false)
     @NotNull(message = "Role code is required")
     @Pattern(regexp = "^[AU]$", message = "Role code must be 'A' (Admin) or 'U' (User)")
     private String roleCode;
@@ -104,11 +104,10 @@ public class User {
      * INACTIVE = Account is disabled but can be reactivated
      * LOCKED = Account is locked due to security concerns
      */
-    @Column(name = "status", length = 20, nullable = false)
+    @Column(name = "status", nullable = false)
     @NotBlank(message = "Status is required")
-    @Pattern(regexp = "^(ACTIVE|INACTIVE|LOCKED)$", 
-             message = "Status must be ACTIVE, INACTIVE, or LOCKED")
-    private String status = "ACTIVE";
+    @Enumerated(EnumType.STRING)
+    private UserStatus status = UserStatus.ACTIVE;
 
     /**
      * User first name, mapped from SEC-USR-FNAME.
@@ -148,7 +147,7 @@ public class User {
      * Automatically incremented by JPA on each update.
      */
     @Version
-    @Column(name = "version_number", nullable = false)
+    @Column(name = "row_version", nullable = false)
     private Long versionNumber = 0L;
 
     /**
@@ -169,7 +168,7 @@ public class User {
         this.username = username;
         this.passwordHash = passwordHash;
         this.roleCode = roleCode;
-        this.status = "ACTIVE";
+        this.status = UserStatus.ACTIVE;
     }
 
     /**
@@ -183,13 +182,13 @@ public class User {
      * @param status Account status
      */
     public User(String username, String passwordHash, String roleCode, 
-                String firstName, String lastName, String status) {
+                String firstName, String lastName, UserStatus status) {
         this.username = username;
         this.passwordHash = passwordHash;
         this.roleCode = roleCode;
         this.firstName = firstName;
         this.lastName = lastName;
-        this.status = status != null ? status : "ACTIVE";
+        this.status = status != null ? status : UserStatus.ACTIVE;
     }
 
     /**
@@ -289,7 +288,7 @@ public class User {
      * 
      * @return Status string (ACTIVE, INACTIVE, LOCKED)
      */
-    public String getStatus() {
+    public UserStatus getStatus() {
         return status;
     }
 
@@ -298,7 +297,7 @@ public class User {
      * 
      * @param status Status string (ACTIVE, INACTIVE, LOCKED)
      */
-    public void setStatus(String status) {
+    public void setStatus(UserStatus status) {
         this.status = status;
     }
 
@@ -418,7 +417,7 @@ public class User {
      * @return true if account status is ACTIVE
      */
     public boolean isActive() {
-        return "ACTIVE".equals(this.status);
+        return UserStatus.ACTIVE.equals(this.status);
     }
 
     /**
@@ -493,4 +492,9 @@ public class User {
                 ", versionNumber=" + versionNumber +
                 '}';
     }
+    
+    public enum UserStatus {
+        ACTIVE, INACTIVE, LOCKED
+    }
+    
 }

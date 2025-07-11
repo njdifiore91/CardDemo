@@ -150,7 +150,7 @@ public class BatchJobConfig {
         factory.setTransactionManager(databaseConfig.transactionManager(databaseConfig.entityManagerFactory(databaseConfig.dataSource())));
         
         // Set database type and schema initialization
-        factory.setDatabaseType("POSTGRESQL");
+        factory.setDatabaseType("POSTGRES");
         factory.setTablePrefix("BATCH_");
         factory.setIsolationLevelForCreate("ISOLATION_READ_COMMITTED");
         
@@ -213,6 +213,7 @@ public class BatchJobConfig {
         factory.setSerializer(new Jackson2ExecutionContextStringSerializer());
         
         // Apply after properties set to initialize factory
+        factory.setTransactionManager(databaseConfig.transactionManager(databaseConfig.entityManagerFactory(databaseConfig.dataSource())));
         factory.afterPropertiesSet();
         
         JobExplorer jobExplorer = factory.getObject();
@@ -463,34 +464,6 @@ public class BatchJobConfig {
         logger.info("Batch transaction manager configured successfully");
         
         return transactionManager;
-    }
-
-    /**
-     * Configures a dedicated DataSource for batch processing operations.
-     * 
-     * This DataSource provides optimized database connectivity for batch processing
-     * workloads with connection pool settings tuned for high-volume data operations
-     * and extended processing times.
-     * 
-     * Features:
-     * - HikariCP connection pool optimized for batch processing
-     * - Extended connection timeouts for long-running operations
-     * - Connection pool sizing for concurrent batch job execution
-     * - Performance monitoring and health check integration
-     * - PostgreSQL-specific optimizations for batch workloads
-     * 
-     * @return DataSource configured for batch processing operations
-     */
-    @Bean
-    public DataSource batchDataSource() {
-        logger.info("Configuring batch-specific DataSource with HikariCP optimization");
-        
-        // Leverage the optimized DataSource from DatabaseConfig
-        DataSource dataSource = databaseConfig.dataSource();
-        
-        logger.info("Batch DataSource configured successfully with HikariCP optimization");
-        
-        return dataSource;
     }
 
     /**
