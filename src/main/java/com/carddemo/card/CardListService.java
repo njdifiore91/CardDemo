@@ -8,8 +8,10 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import jakarta.validation.Valid;
@@ -20,6 +22,8 @@ import java.util.ArrayList;
 import java.util.stream.Collectors;
 
 import com.carddemo.audit.AuditService;
+import com.carddemo.entity.User;
+import com.carddemo.repository.UserRepository;
 import com.carddemo.session.SessionManagementService;
 import com.carddemo.account.Account;
 import com.carddemo.account.AccountRepository;
@@ -87,6 +91,7 @@ public class CardListService {
     private final AccountRepository accountRepository;
     private final AuditService auditService;
     private final SessionManagementService sessionManagementService;
+    private final UserRepository userRepository;
 
     /**
      * Constructor with dependency injection for all required services.
@@ -100,11 +105,13 @@ public class CardListService {
     public CardListService(@Lazy CardRepository cardRepository, 
     			@Lazy AccountRepository accountRepository,
                           AuditService auditService, 
-                          SessionManagementService sessionManagementService) {
+                          SessionManagementService sessionManagementService,
+                          UserRepository userRepository) {
         this.cardRepository = cardRepository;
         this.accountRepository = accountRepository;
         this.auditService = auditService;
         this.sessionManagementService = sessionManagementService;
+        this.userRepository = userRepository;
     }
 
     /**
@@ -230,7 +237,7 @@ public class CardListService {
             
             if (ADMIN_USER_TYPE.equals(userType)) {
                 // Admin users can view all cards with pagination
-                cardPage = cardRepository.findCardsPageable(validatedPageable);
+                cardPage = cardRepository.findAll(validatedPageable);
                 logger.info("Admin user retrieved page {} of cards ({} total)", 
                            cardPage.getNumber(), cardPage.getTotalElements());
             } else {
@@ -256,6 +263,7 @@ public class CardListService {
             return cardPage;
             
         } catch (Exception e) {
+        	e.printStackTrace();
             logger.error("Error retrieving paginated card list", e);
             throw new RuntimeException("Failed to retrieve paginated card list", e);
         }
@@ -955,6 +963,13 @@ public class CardListService {
 
     private String getUserTypeFromSession() {
         try {
+        	String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        	if (StringUtils.isNotBlank(username)) {
+        		Optional<User> user = userRepository.findByUsername(SecurityContextHolder.getContext().getAuthentication().getName());
+        		if (user.isPresent() && user.get().getRoleCode() != null) {
+        			return user.get().getRoleCode().equalsIgnoreCase(ADMIN_USER_TYPE) ? ADMIN_USER_TYPE : REGULAR_USER_TYPE;
+        		}
+        	}
             HttpServletRequest request = getCurrentRequest();
             if (request != null) {
                 Optional<Object> userType = sessionManagementService.getSessionAttribute(request, SESSION_USER_TYPE);

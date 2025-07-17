@@ -65,7 +65,7 @@ public class User {
     @Id
     @Column(name = "user_id", columnDefinition = "UUID", updatable = false)
     @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID id;
+    private String id;
 
     /**
      * Unique username for authentication, mapped from original SEC-USR-ID.
@@ -216,7 +216,7 @@ public class User {
      * 
      * @return UUID user identifier
      */
-    public UUID getId() {
+    public String getId() {
         return id;
     }
 
@@ -225,7 +225,7 @@ public class User {
      * 
      * @param id UUID user identifier
      */
-    public void setId(UUID id) {
+    public void setId(String id) {
         this.id = id;
     }
 

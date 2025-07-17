@@ -192,11 +192,11 @@ public class AuthenticationService implements UserDetailsService {
 
         // Query users table with status validation (equivalent to CICS READ)
         Optional<User> userOptional = userRepository.findByUsernameAndStatus(
-            username.toUpperCase(), UserStatus.ACTIVE);
+            username, UserStatus.ACTIVE);
         
         if (userOptional.isEmpty()) {
             // Check if user exists but is inactive/locked
-            Optional<User> inactiveUser = userRepository.findByUsername(username.toUpperCase());
+            Optional<User> inactiveUser = userRepository.findByUsername(username);
             if (inactiveUser.isPresent()) {
                 User user = inactiveUser.get();
                 if (UserStatus.LOCKED.equals(user.getStatus())) {
@@ -297,18 +297,19 @@ public class AuthenticationService implements UserDetailsService {
             Collection<GrantedAuthority> authorities = mapUserTypeToAuthorities(user.getRoleCode());
             
             // Create authentication response
-            return new AuthenticationResponse(
-                jwtToken,
-                user.getId().toString(),
-                user.getUsername(),
-                user.getRoleCode(),
-                authorities.stream()
-                    .map(GrantedAuthority::getAuthority)
-                    .collect(Collectors.toList()),
-                user.getFullName(),
-                true,
-                "Authentication successful"
-            );
+            AuthenticationResponse authenticationResponse = new AuthenticationResponse(
+                    jwtToken,
+                    user.getId().toString(),
+                    user.getUsername(),
+                    user.getRoleCode(),
+                    authorities.stream()
+                        .map(GrantedAuthority::getAuthority)
+                        .collect(Collectors.toList()),
+                    user.getFullName(),
+                    true,
+                    "Authentication successful"
+                );
+            return authenticationResponse;
             
         } catch (AuthenticationException e) {
             throw e;

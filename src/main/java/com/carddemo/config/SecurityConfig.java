@@ -13,6 +13,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -33,6 +34,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.util.StringUtils;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.session.data.redis.config.annotation.web.http.EnableRedisHttpSession;
 
@@ -216,7 +218,9 @@ public class SecurityConfig {
             .authorizeHttpRequests(authz -> authz
                 // Public endpoints for authentication and health checks
                 .requestMatchers("/auth/login", "/auth/logout").permitAll()
+                .requestMatchers(HttpMethod.POST, "/auth/login").permitAll()
                 .requestMatchers("/health", "/actuator/health").permitAll()
+                .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
                 .requestMatchers("/api/auth/**").permitAll()
                 
                 // Static resources for React frontend
@@ -240,7 +244,8 @@ public class SecurityConfig {
                         accessDeniedException.getMessage() + "\"}"
                     );
                 })
-            );
+            )
+            .httpBasic(Customizer.withDefaults());
 
         return http.build();
     }

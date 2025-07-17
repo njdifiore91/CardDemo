@@ -158,6 +158,7 @@ public class DatabaseConfig {
         config.addDataSourceProperty("cacheServerConfiguration", "true");
         config.addDataSourceProperty("elideSetAutoCommits", "true");
         config.addDataSourceProperty("maintainTimeStats", "false");
+        config.setAutoCommit(false);
         
         
         return new HikariDataSource(config);
