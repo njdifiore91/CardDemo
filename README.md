@@ -1,490 +1,324 @@
-# CardDemo - Modern Credit Card Management System
+## CardDemo -- Mainframe CardDemo Application
 
-[![Java](https://img.shields.io/badge/Java-21-orange)](https://openjdk.org/projects/jdk/21/)
-[![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.2.x-brightgreen)](https://spring.io/projects/spring-boot)
-[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15+-blue)](https://www.postgresql.org/)
-[![React](https://img.shields.io/badge/React-18.x-blue)](https://reactjs.org/)
-[![Docker](https://img.shields.io/badge/Docker-24+-blue)](https://www.docker.com/)
-[![Kubernetes](https://img.shields.io/badge/Kubernetes-1.28+-326CE5)](https://kubernetes.io/)
-
-- [CardDemo - Modern Credit Card Management System](#carddemo---modern-credit-card-management-system)
-- [Migration Overview](#migration-overview)
-  - [Architecture Transformation](#architecture-transformation)
-  - [Technology Stack](#technology-stack)
-- [System Requirements](#system-requirements)
-- [Development Setup](#development-setup)
-  - [Prerequisites](#prerequisites)
-  - [Local Development Environment](#local-development-environment)
-  - [Docker Development Environment](#docker-development-environment)
-- [Application Architecture](#application-architecture)
-  - [Spring Boot Services](#spring-boot-services)
-  - [Spring Batch Jobs](#spring-batch-jobs)
-  - [React Frontend Components](#react-frontend-components)
-- [Database Schema](#database-schema)
-- [API Documentation](#api-documentation)
-- [Deployment](#deployment)
-  - [Container Deployment](#container-deployment)
-  - [Kubernetes Deployment](#kubernetes-deployment)
-- [Performance Specifications](#performance-specifications)
-- [Monitoring and Observability](#monitoring-and-observability)
-- [Testing Strategy](#testing-strategy)
+- [CardDemo -- Mainframe CardDemo Application](#carddemo----mainframe-card-demo-application)
+- [Description](#description)
+- [Technologies used](#technologies-used)
+- [Installation on the mainframe](#installation-on-the-mainframe)
+- [Application Details](#application-details)
+  - [User Functions](#user-functions)
+  - [Admin Functions](#admin-functions)
+  - [Application Inventory](#application-inventory)
+    - [**Online**](#online)
+    - [**Batch**](#batch)
+  - [Application Screens](#application-screens)
+    - [**Signon Screen**](#signon-screen)
+    - [**Main Menu**](#main-menu)
+    - [**Admin Menu**](#admin-menu)
+- [Support](#support)
+- [Roadmap](#roadmap)
 - [Contributing](#contributing)
 - [License](#license)
+- [Project status](#project-status)
 
-## Migration Overview
+<br/>
 
-CardDemo represents a complete migration from IBM mainframe technology stack to modern cloud-native architecture, transforming a COBOL/CICS/VSAM credit card management system into a Spring Boot/React/PostgreSQL application while preserving identical business logic and user experience.
+## Description
+CardDemo is a Mainframe application designed and developed to test and showcase AWS and partner technology for mainframe migration and modernization use-cases such as discovery, migration, modernization, performance test, augmentation, service enablement, service extraction, test creation, test harness, etc.
 
-### Architecture Transformation
+Note that the intent of this application is to provide mainframe coding scenarios to excercise analysis, transformation and migration tooling. So, the coding style is not uniform across the application
 
-**From Legacy Mainframe:**
-- **COBOL Programs** → **Spring Boot Services**
-- **CICS Transactions** → **REST API Endpoints**
-- **VSAM Files** → **PostgreSQL Tables**
-- **BMS Maps** → **React Components**
-- **JCL Jobs** → **Spring Batch Jobs**
-- **RACF Security** → **Spring Security**
+<br/>
 
-**Migration Statistics:**
-- **33 COBOL programs** migrated to **22 Spring Boot services**
-- **17 BMS maps** converted to **React components**
-- **10 VSAM files** transformed to **PostgreSQL tables**
-- **16 JCL jobs** implemented as **9 Spring Batch jobs**
-- **Complete functional parity** with 100% business logic preservation
+## Technologies used
+1. COBOL
+2. CICS
+3. VSAM
+4. JCL
+5. RACF
 
-### Technology Stack
+<br/>
 
-| Component | Technology | Version | Purpose |
-|-----------|------------|---------|---------|
-| **Runtime** | Java | 21 LTS | Primary development language |
-| **Framework** | Spring Boot | 3.2.x | Application framework |
-| **Database** | PostgreSQL | 15+ | Primary data persistence |
-| **Cache** | Redis | 7+ | Session management & caching |
-| **Frontend** | React | 18.x | User interface framework |
-| **Build Tool** | Maven | 3.9+ | Build automation |
-| **Containerization** | Docker | 24+ | Application packaging |
-| **Orchestration** | Kubernetes | 1.28+ | Container orchestration |
+## Installation on the mainframe 
 
-## System Requirements
+To install this repository on the mainframe please follow the following steps
 
-### Hardware Requirements
-- **CPU**: 4+ cores (Intel/AMD x64 or ARM64)
-- **Memory**: 8GB+ RAM for development, 16GB+ for production
-- **Storage**: 50GB+ available disk space
-- **Network**: Stable internet connection for dependency management
+1. Clone this repository to your local development environment
 
-### Software Requirements
-- **Java Development Kit**: OpenJDK 21 LTS or Oracle JDK 21
-- **Maven**: 3.9+ for build automation
-- **Docker**: 24+ with Docker Compose
-- **Git**: Latest version for source control
-- **IDE**: IntelliJ IDEA, Eclipse, or VS Code with Java extensions
-
-## Development Setup
-
-### Prerequisites
-
-1. **Install Java 21**
-   ```bash
-   # Using SDKMAN (recommended)
-   curl -s "https://get.sdkman.io" | bash
-   sdk install java 21.0.1-open
-   sdk use java 21.0.1-open
+2. Create datasets on the mainframe  hold the code
+   * It is recommended to group them under a High Level Qualifier (HLQ)for all your datasets. 
+   * Upload the following application source folders from the main branch of git repository on to your mainframe
+      using $INDFILE or your preferred upload tool.
+   * If you have used AWS.M2 as your HLQ, you should end up with the below code structure on the mainframe
    
-   # Verify installation
-   java -version
-   mvn -version
-   ```
+      | HLQ    | Name          | Format | Length |
+      | :----- | :------------ | :----- | -----: |
+      | AWS.M2 | CARDDEMO.JCL  | FB     |     80 |
+      | AWS.M2 | CARDDEMO.PROC | FB     |     80 |
+      | AWS.M2 | CARDDEMO.CBL  | FB     |     80 |
+      | AWS.M2 | CARDDEMO.CPY  | FB     |     80 |
+      | AWS.M2 | CARDDEMO.BMS  | FB     |     80 |
+      
+3. Use data for testing using either of the below approaches
 
-2. **Install Docker and Docker Compose**
-   ```bash
-   # On macOS using Homebrew
-   brew install docker docker-compose
+   ** Use the supplied sample data**
    
-   # On Ubuntu/Debian
-   curl -fsSL https://get.docker.com -o get-docker.sh
-   sudo sh get-docker.sh
-   sudo usermod -aG docker $USER
-   ```
+      * Upload the sample data provided in the main/-/data/EBCDIC/ folder to the mainframe. Ensure that you use transfer mode binary
 
-3. **Clone Repository**
-   ```bash
-   git clone https://github.com/your-org/carddemo.git
-   cd carddemo
-   ```
+         | Dataset name                      | Name                                             | Copybook (Layout) | Format | Length | Name of equivalent ascii file |
+         | :---------------------------------| :----------------------------------------------- | :-----            | :----- | -----: | :---------------------------- |
+         | AWS.M2.CARDDEMO.USRSEC.PS         | User Security file                               | CSUSR01Y          | FB     |     80 | See DEFUSR01.jcl (inline)     |
+         | AWS.M2.CARDDEMO.ACCTDATA.PS       | Account Data                                     | CVACT01Y          | FB     |    300 | acctdata.txt                  |
+         | AWS.M2.CARDDEMO.CARDDATA.PS       | Card Data                                        | CVACT02Y          | FB     |    150 | carddata.txt                  |
+         | AWS.M2.CARDDEMO.CUSTDATA.PS       | Customer Data                                    | CVCUS01Y          | FB     |    500 | custdata.txt                  |
+         | AWS.M2.CARDDEMO.CARDXREF.PS       | Customer Account Card Cross reference            | CVACT03Y          | FB     |     50 | cardxref.txt                  |
+         | AWS.M2.CARDDEMO.DALYTRAN.PS.INIT  | Transaction database initialization record       | CVTRA06Y          | FB     |    350 | 1 record (low-values ending with 00000100)|
+         | AWS.M2.CARDDEMO.DALYTRAN.PS       | Transaction data which has to go through posting | CVTRA06Y          | FB     |    350 | dailytran.txt                 |
+         | AWS.M2.CARDDEMO.TRANSACT.VSAM.KSDS| Transaction data entered online                  | CVTRA05Y          | FB     |    350 | not applicable                |
+         | AWS.M2.CARDDEMO.DISCGRP.PS        | Disclosure Groups                                | CVTRA02Y          | FB     |     50 | discgrp.txt                   |
+         | AWS.M2.CARDDEMO.TRANCATG.PS       | Transaction Category Types                       | CVTRA04Y          | FB     |     60 | trancatg.txt                  |
+         | AWS.M2.CARDDEMO.TRANTYPE.PS       | Transaction Types                                | CVTRA03Y          | FB     |     60 | trantype.txt                  |
+         | AWS.M2.CARDDEMO.TCATBALF.PS       | Transaction Category Balance                     | CVTRA01Y          | FB     |     50 | tcatbal.txt                   |
 
-### Local Development Environment
+      * Execute the following JCLs in order
 
-1. **Configure Application Properties**
-   ```bash
-   # Copy development configuration
-   cp src/main/resources/application-dev.yml.example src/main/resources/application-dev.yml
+         | Jobname  | What it does                                        |
+         | :------- | :-------------------------------------------------- |
+         | DUSRSECJ | Sets up user security vsam file                     |
+         | CLOSEFIL | Closes files opened by CICS                         |
+         | ACCTFILE | Loads Account database using sample data            |
+         | CARDFILE | Loads Card database with credit card sample data    |
+         | CUSTFILE | Creates customer database                           |
+         | XREFFILE | Loads Customer Card account cross reference to VSAM |
+         | TRANFILE | Copies initial Trasaction file  to VSAM             |
+         | DISCGRP  | Copies initial Disclosure Group file  to VSAM       |
+         | TCATBALF | Copies initial TCATBALF file  to VSAM               |
+         | TRANCATG | Copies initial transaction category file  to VSAM   |
+         | TRANTYPE | Copies initial transaction type file                |
+         | OPENFIL  | Makes files available to CICS                       |
+         | DEFGDGB  | Defines GDG Base                                    |
+
+
+4. Compile the Programs. 
    
-   # Edit configuration as needed
-   nano src/main/resources/application-dev.yml
-   ```
-
-2. **Set up PostgreSQL Database**
-   ```bash
-   # Start PostgreSQL using Docker
-   docker run -d --name carddemo-postgres \
-     -e POSTGRES_DB=carddemo_dev \
-     -e POSTGRES_USER=carddemo_dev \
-     -e POSTGRES_PASSWORD=carddemo_dev \
-     -p 5432:5432 postgres:15-alpine
+   You should use the compile process followed by your mainframe shopfloor
    
-   # Initialize database schema
-   mvn flyway:migrate -Dspring.profiles.active=dev
-   ```
+   We have however provided some sample JCLs in the samples folder in git to help you craft the JCL   
 
-3. **Set up Redis Cache**
-   ```bash
-   # Start Redis using Docker
-   docker run -d --name carddemo-redis \
-     -p 6379:6379 redis:7-alpine
-   ```
-
-4. **Build and Run Application**
-   ```bash
-   # Build the application
-   mvn clean package -DskipTests
+5. Create resources in the CARDDEMO group in CICS
    
-   # Run with development profile
-   mvn spring-boot:run -Dspring.profiles.active=dev
+   You have 2 options
    
-   # Or run the JAR directly
-   java -jar target/carddemo-1.0.0.jar --spring.profiles.active=dev
-   ```
-
-### Docker Development Environment
-
-1. **Start Complete Environment**
-   ```bash
-   # Start all services in development mode
-   docker-compose up -d
+   Be sure to edit the HLQs in the below documents as required before you do the definition
    
-   # View logs
-   docker-compose logs -f app
+   * (Preferred) . Use the DFHCSDUP JCL that the resources required by the application
+
+      The resources required are in the CSD file provided in the CSD folder
+       
+      * Group CARDDEMO
+      * Mapsets
+      * Transactions
+      * Maps
+      * Files
+      
+   * Use the CEDA transaction to execute the commands in the above listing
    
-   # Stop services
-   docker-compose down
-   ```
+      * Define group 
+         ```shell
+         DEFINE LIBRARY(COM2DOLL) GROUP(CARDDEMO) DSNAME01(&HLQ..LOADLIB)
+         ```
+      * Define Mapsets, Maps , Programs and Files
+      
+         Sample CEDA commands
+         
+         ```shell
+         DEF PROGRAM(COCRDLIC) GROUP(CARDDEMO)
+         DEF MAPSET(COCRDLI) GROUP(CARDDEMO)
+         DEFINE PROGRAM(COSGN00C) GROUP(CARDDEMO) DA(ANY) TRANSID(CC00) DESCRIPTION(LOGIN)
+         DEFINE TRANSACTION(CC00) GROUP(CARDDEMO) PROGRAM(COSGN00C) TASKDATAL(ANY)
+         ```
 
-2. **Access Application**
-   - **API Endpoints**: http://localhost:8080/api
-   - **Actuator Monitoring**: http://localhost:8081/actuator
-   - **Health Check**: http://localhost:8081/actuator/health
-   - **Metrics**: http://localhost:8081/actuator/metrics
+   * Install /Load the online resources to your CICS region
 
-## Application Architecture
+      ```shell
+      CEDA INSTALL TRANS(CCLI) GROUP(CARDDEMO)
+      CEDA INSTALL FILE(CARDDAT) GROUP(CARDDEMO)
+      CECI LOAD PROG(COCRDUP)
+      CECI LOAD PROG(COCRDUPC)
+      ```
 
-### Spring Boot Services
+   * Execute a NEWCOPY of mapsets and maps
+      ```shell
+      CEMT SET PROG(COCRDUP) NEWCOPY
+      CEMT SET PROG(COCRDUPC) NEWCOPY  
+      ```
+6. Enjoy the demo
 
-The application is structured as a modular monolith with 22 microservices representing the migrated COBOL programs:
+   * For online functions : Start the CardDemo application using the CC00 transaction
+     - Enter userid ADMIN001 and the initially configured password PASSWORD to manage users
+     - Enter userid USER0001 and the initially configured password PASSWORD to access back office functions
+   * For batch            : See the instructions for running full batch below.
 
-| Service | COBOL Origin | Purpose | Key Features |
-|---------|-------------|---------|-------------|
-| **AuthenticationService** | COSGN00C | User authentication | JWT tokens, Spring Security |
-| **MenuService** | COMEN01C | Navigation | REST endpoints, role-based access |
-| **AdminMenuService** | COADM01C | Admin functions | Administrative operations |
-| **AccountService** | COACTVWC, COACTUPC | Account management | CRUD operations, validation |
-| **CardService** | COCRDLIC, COCRDSLC, COCRDUPC | Card operations | Lifecycle management, Luhn validation |
-| **TransactionService** | COTRN00C-02C | Transaction processing | Real-time processing, categorization |
-| **PaymentService** | COBIL00C | Bill payments | Balance updates, confirmations |
-| **UserManagementService** | COUSR00C-03C | User administration | Role management, CRUD operations |
-| **ReportService** | CORPT00C | Report generation | JasperReports, multiple formats |
-
-### Spring Batch Jobs
-
-The batch processing layer includes 9 Spring Batch jobs replacing 16 JCL programs:
-
-| Batch Job | JCL Origin | Function | Schedule |
-|-----------|------------|----------|----------|
-| **AccountBatchJob** | CBACT01C-04C | Account processing | Nightly |
-| **CustomerBatchJob** | CBCUS01C | Customer data loading | Weekly |
-| **TransactionBatchJob** | CBTRN01C-03C | Transaction posting | Hourly |
-| **StatementBatchJob** | CBSTM03A/B | Statement generation | Monthly |
-| **InterestCalculationJob** | CBACT04C | Interest calculations | Daily |
-| **FileProcessingJob** | IDCAMS utilities | File operations | On-demand |
-| **DataValidationJob** | Custom validation | Data integrity checks | Daily |
-| **ReportGenerationJob** | CORPT00C batch | Batch reporting | Weekly |
-| **ArchivalJob** | Custom archival | Data archiving | Monthly |
-
-### React Frontend Components
-
-The frontend preserves exact BMS screen layouts with 17 React components:
-
-| Component | BMS Origin | Function | Features |
-|-----------|------------|----------|----------|
-| **LoginScreen** | COSGN00.bms | Authentication | Field validation, session management |
-| **MainMenu** | COMEN01.bms | Navigation | Role-based menu options |
-| **AdminMenu** | COADM01.bms | Admin functions | Administrative navigation |
-| **AccountView** | COACTVW.bms | Account details | Read-only account information |
-| **AccountUpdate** | COACTUP.bms | Account editing | Form validation, optimistic locking |
-| **CardList** | COCRDLI.bms | Card listing | Pagination, filtering |
-| **CardDetail** | COCRDSL.bms | Card information | Card details, status display |
-| **CardUpdate** | COCRDUP.bms | Card editing | Status changes, validation |
-| **TransactionList** | COTRN00.bms | Transaction history | Pagination, date filtering |
-| **TransactionView** | COTRN01.bms | Transaction details | Full transaction information |
-| **TransactionAdd** | COTRN02.bms | New transactions | Input validation, real-time processing |
-| **BillPayment** | COBIL00.bms | Payment processing | Payment forms, confirmation |
-| **UserList** | COUSR00.bms | User management | User listing, role display |
-| **UserCRUD** | COUSR01-03.bms | User operations | Create, update, delete users |
-| **ReportMenu** | CORPT00.bms | Report selection | Report parameters, generation |
-
-## Database Schema
-
-The PostgreSQL database schema transforms 10 VSAM files into relational tables:
-
-| Table | VSAM Origin | Purpose | Key Indexes |
-|-------|-------------|---------|-------------|
-| **customers** | CUSTDATA | Customer demographics | customer_id, ssn, phone |
-| **accounts** | ACCTDATA | Account information | account_id, customer_id |
-| **cards** | CARDDATA | Card details | card_number, account_id |
-| **transactions** | TRANSACT | Transaction records | transaction_id, card_number, timestamp |
-| **users** | USRSEC | User security | user_id, username |
-| **card_account_xref** | CARDXREF | Card-account relationships | Composite: card_number, account_id |
-| **category_balances** | TCATBALF | Category balances | account_id, category_code |
-| **transaction_categories** | TRANCATG | Transaction categories | category_code |
-| **transaction_types** | TRANTYPE | Transaction types | type_code |
-| **discount_groups** | DISCGRP | Discount groups | group_code |
-
-**Database Initialization:**
-```bash
-# Run Flyway migrations
-mvn flyway:migrate
-
-# Load sample data
-mvn flyway:migrate -Dflyway.locations=classpath:db/migration,classpath:db/sample
-```
-
-## API Documentation
-
-### REST Endpoints
-
-The application provides comprehensive REST API endpoints:
-
-| Endpoint Base | Purpose | Authentication |
-|---------------|---------|----------------|
-| `/api/auth/**` | Authentication | Public |
-| `/api/accounts/**` | Account management | JWT Required |
-| `/api/cards/**` | Card operations | JWT Required |
-| `/api/transactions/**` | Transaction processing | JWT Required |
-| `/api/payments/**` | Payment operations | JWT Required |
-| `/api/users/**` | User management | Admin Role |
-| `/api/reports/**` | Report generation | JWT Required |
-
-### OpenAPI Documentation
-
-- **Swagger UI**: http://localhost:8080/api/swagger-ui.html
-- **OpenAPI Spec**: http://localhost:8080/api/v3/api-docs
-- **API Health**: http://localhost:8081/actuator/health
-
-### Sample API Calls
-
-```bash
-# Authentication
-curl -X POST http://localhost:8080/api/auth/login \
-  -H "Content-Type: application/json" \
-  -d '{"username": "USER0001", "password": "PASSWORD"}'
-
-# Account lookup
-curl -X GET http://localhost:8080/api/accounts/00000000001 \
-  -H "Authorization: Bearer <jwt_token>"
-
-# Transaction history
-curl -X GET http://localhost:8080/api/transactions?cardNumber=4000000000000001 \
-  -H "Authorization: Bearer <jwt_token>"
-```
-
-## Deployment
-
-### Container Deployment
-
-1. **Build Docker Image**
-   ```bash
-   # Build application image
-   docker build -t carddemo:latest .
+## Running full batch 
    
-   # Or use Maven plugin
-   mvn clean package docker:build
-   ```
+  * Execute the following JCLs in order
 
-2. **Run with Docker Compose**
-   ```bash
-   # Production deployment
-   docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+    | Jobname  | What it does                                        |
+    | :------- | :-------------------------------------------------- |
+    | CLOSEFIL | Closes files opened by CICS                         |
+    | ACCTFILE | Loads Account database using sample data            |
+    | CARDFILE | Loads Card database with credit card sample data    |
+    | XREFFILE | Loads Customer Card account cross reference to VSAM |
+    | CUSTFILE | Creates customer database                           |
+    | TRANBKP  | Creates Transaction database                        |
+    | DISCGRP  | Copies initial disclosure Group file  to VSAM       |
+    | TCATBALF | Copies initial TCATBALF file  to VSAM               |
+    | TRANTYPE | Copies initial transaction type file                |
+    | DUSRSECJ | Sets up user security vsam file                     |
+    | POSTTRAN | Core processing job                                 |
+    | INTCALC  | Run interest calculations                           |
+    | TRANBKP  | Backup Transaction database                         |
+    | COMBTRAN | Combine system transactions with daily ones         |
+    | CREASTMT | Produce transaction statement                       | 	
+    | TRANIDX  | Define alternate index on transaction file          |
+    | OPENFIL  | Makes files available to CICS                       |
+<br/>
+
+## Application Details 
+The CardDemo is a Credit Card management application, built primarily using COBOL programming language. The application has various functions that allows users to manage Account, Credit card, Transaction and Bill payment. 
+
+There are 2 types of users:
+* Regular User
+* Admin User
+
+The Regular user can perform the user functions and the Admin users can only perform Admin functions.
+
+<br/>
+
+### User Functions
+
+![Alt text](./diagrams/Application-Flow-User.png?raw=true "User Flow")
+
+<br/>
+
+### Admin Functions
+
+![Alt text](./diagrams/Application-Flow-Admin.png?raw=true "Admin Flow")
+
+<br/>
+
+### Application Inventory
+
+#### **Online**
+
+| Transaction |      | BMS Map | Program  | Function            |
+| :---------- | :--- | :------ | :------- | :------------------ |
+| CC00        |      | COSGN00 | COSGN00C | Signon Screen       |
+| CM00        |      | COMEN01 | COMEN01C | Main Menu           |
+|             | CAVW | COACTVW | COACTVWC | Account View        |
+|             | CAUP | COACTUP | COACTUPC | Account Update      |
+|             | CCLI | COCRDLI | COCRDLIC | Credit Card List    |
+|             | CCDL | COCRDSL | COCRDSLC | Credit Card View    |
+|             | CCUP | COCRDUP | COCRDUPC | Credit Card Update  |
+|             | CT00 | COTRN00 | COTRN00C | Transaction List    |
+|             | CT01 | COTRN01 | COTRN01C | Transaction View    |
+|             | CT02 | COTRN02 | COTRN02C | Transaction Add     |
+|             | CR00 | CORPT00 | CORPT00C | Transaction Reports |
+|             | CB00 | COBIL00 | COBIL00C | Bill Payment        |
+| CA00        |      | COADM01 | COADM01C | Admin Menu          |
+|             | CU00 | COUSR00 | COUSR00C | List Users          |
+|             | CU01 | COUSR01 | COUSR01C | Add User            |
+|             | CU02 | COUSR02 | COUSR02C | Update User         |
+|             | CU03 | COUSR03 | COUSR03C | Delete User         |
+
+#### **Batch**
+
+| Job      | Program  | Function                                   |
+| :------- | :------- | :----------------------------------------- |
+| DUSRSECJ | IEBGENER | Initial Load of User security file         |
+| DEFGDGB  | IDCAMS   | Setup GDG Bases                            | 
+| ACCTFILE | IDCAMS   | Refresh Account Master                     |
+| CARDFILE | IDCAMS   | Refresh Card Master                        |
+| CUSTFILE | IDCAMS   | Refresh Customer Master                    |
+| DISCGRP  | IDCAMS   | Load Disclosure Group File                 |
+| TRANFILE | IDCAMS   | Load Transaction Master file               |
+| TRANCATG | IDCAMS   | Load Transaction category types            |
+| TRANTYPE | IDCAMS   | Load Transaction type file                 |
+| XREFFILE | IDCAMS   | Account, Card and Customer cross reference |
+| CLOSEFIL | IEFBR14  | Close VSAM files in CICS                   |
+| TCATBALF | IDCAMS   | Refresh Transaction Category Balance       |
+| TRANBKP  | IDCAMS   | Refresh Transaction Master                 |
+| POSTTRAN | CBTRN02C | Transaction processing job                 |
+| TRANIDX  | IDCAMS   | Define AIX for transaction file            |
+| OPENFIL  | IEFBR14  | Open files in CICS                         |
+| INTCALC  | CBACT04C | Run interest calculations                  |
+| COMBTRAN | SORT     | Combine transaction files                  |
+| CREASTMT | CBSTM03A | Produce transaction statement              |
+
+<br/>
+
+### Application Screens
+
+#### **Signon Screen**
+
+![Alt text](./diagrams/Signon-Screen.png?raw=true "Signon Screen")
+
+
+#### **Main Menu**
+
+![Alt text](./diagrams/Main-Menu.png?raw=true "Main Menu")
+
+#### **Admin Menu**
+
+![Alt text](./diagrams/Admin-Menu.png?raw=true "Admin Menu")
+
+<br/>
+
+## Support
+
+If you have questions or requests for improvement please raise an issue in the repository.
+
+<br/>
+
+## Roadmap
+
+The following features are planned for upcoming releases
+
+1. More database types
+
+   1. Relational Database usage : Db2 
    
-   # Scale application instances
-   docker-compose up -d --scale app=3
-   ```
+   2. Hierachical database calls : IMS
 
-### Kubernetes Deployment
+2. Integration
 
-1. **Deploy to Kubernetes**
-   ```bash
-   # Apply Kubernetes manifests
-   kubectl apply -f k8s/namespace.yaml
-   kubectl apply -f k8s/postgres.yaml
-   kubectl apply -f k8s/redis.yaml
-   kubectl apply -f k8s/app.yaml
-   kubectl apply -f k8s/ingress.yaml
+   * ftp, sftp
    
-   # Check deployment status
-   kubectl get pods -n carddemo
-   ```
-
-2. **Configuration Management**
-   ```bash
-   # Create ConfigMap for application properties
-   kubectl create configmap app-config \
-     --from-file=src/main/resources/application.yml \
-     -n carddemo
+   * Message queue integration
    
-   # Create Secret for sensitive data
-   kubectl create secret generic app-secrets \
-     --from-literal=database-password=<password> \
-     --from-literal=jwt-secret=<secret> \
-     -n carddemo
-   ```
+   * Exposure of transactions for distributed application integration
 
-## Performance Specifications
-
-### Capacity Requirements
-
-| Metric | Specification | Achievement |
-|--------|---------------|-------------|
-| **Transaction Throughput** | 10,000 TPS | ✅ Achieved |
-| **Response Time (Online)** | < 200ms | ✅ Avg: 150ms |
-| **Batch Processing Window** | 4 hours | ✅ Completed in 3h |
-| **Concurrent Users** | 1,000+ | ✅ Tested 1,500 |
-| **Database Query Performance** | < 50ms | ✅ Avg: 25ms |
-| **Memory Usage** | < 2GB | ✅ Avg: 1.2GB |
-
-### Performance Monitoring
-
-```bash
-# JVM Performance
-curl http://localhost:8081/actuator/metrics/jvm.memory.used
-
-# Database Performance
-curl http://localhost:8081/actuator/metrics/hikaricp.connections.active
-
-# HTTP Performance
-curl http://localhost:8081/actuator/metrics/http.server.requests
-```
-
-## Monitoring and Observability
-
-### Health Checks
-
-- **Application Health**: http://localhost:8081/actuator/health
-- **Database Health**: http://localhost:8081/actuator/health/db
-- **Redis Health**: http://localhost:8081/actuator/health/redis
-
-### Metrics and Monitoring
-
-- **Prometheus Metrics**: http://localhost:8081/actuator/prometheus
-- **Application Metrics**: http://localhost:8081/actuator/metrics
-- **Thread Dump**: http://localhost:8081/actuator/threaddump
-- **Heap Dump**: http://localhost:8081/actuator/heapdump
-
-### Logging
-
-```bash
-# View application logs
-docker-compose logs -f app
-
-# View database logs
-docker-compose logs -f postgresql
-
-# View Redis logs
-docker-compose logs -f redis
-```
-
-## Testing Strategy
-
-### Unit Testing
-
-```bash
-# Run unit tests
-mvn test
-
-# Run with coverage
-mvn test jacoco:report
-
-# View coverage report
-open target/site/jacoco/index.html
-```
-
-### Integration Testing
-
-```bash
-# Run integration tests
-mvn verify
-
-# Run with Testcontainers
-mvn failsafe:integration-test
-```
-
-### End-to-End Testing
-
-```bash
-# Run E2E tests
-mvn verify -Dspring.profiles.active=test
-
-# Performance testing
-mvn gatling:test -Dgatling.simulationClass=LoadTest
-```
-
-### Test Data
-
-```bash
-# Load test data
-mvn flyway:migrate -Dflyway.locations=classpath:db/migration,classpath:db/test
-
-# Reset test database
-mvn flyway:clean flyway:migrate
-```
+<br/>
 
 ## Contributing
 
-We welcome contributions to the CardDemo project! Please follow these guidelines:
+We are looking forward to receiving contributions and enhancements to this initial codebase from the mainframe code base
 
-1. **Fork the repository** and create a feature branch
-2. **Follow coding standards** as defined in `.editorconfig`
-3. **Write comprehensive tests** for new functionality
-4. **Update documentation** for any API changes
-5. **Submit pull requests** with clear descriptions
+Feel free to raise issues, create code and raise merge requests for enhancements so that we can build out this application as a resource for programmers wanting to understand and modernize their mainframes.
 
-### Development Workflow
-
-```bash
-# Create feature branch
-git checkout -b feature/new-functionality
-
-# Make changes and commit
-git add .
-git commit -m "Add new functionality with tests"
-
-# Push and create PR
-git push origin feature/new-functionality
-```
+<br/>
 
 ## License
 
-This project is licensed under the Apache License 2.0. See the [LICENSE](LICENSE) file for complete details.
+This is intended to be a community resource and it is released under the Apache 2.0 license.
 
-**Copyright © 2024 CardDemo Development Team**
+<br/>
 
-Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at:
+## Project status
 
-http://www.apache.org/licenses/LICENSE-2.0
+We are planning a v2 of this application in Q1 2023.
 
-Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
+Watch this space for updates
 
----
+<br/>
 
-**🚀 CardDemo - Empowering Mainframe to Cloud Migration**
 
-*A comprehensive demonstration of modern cloud-native architecture principles applied to enterprise credit card management systems.*
