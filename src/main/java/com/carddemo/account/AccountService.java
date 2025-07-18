@@ -24,10 +24,10 @@ import java.util.HashMap;
 import java.util.concurrent.ConcurrentHashMap;
 
 import com.carddemo.account.AccountRepository;
-import com.carddemo.account.Account;
 import com.carddemo.account.AccountValidator;
 import com.carddemo.account.AccountValidator.ValidationResult;
 import com.carddemo.audit.AuditService;
+import com.carddemo.entity.Account;
 import com.carddemo.session.SessionManagementService;
 
 import org.slf4j.Logger;
@@ -107,7 +107,7 @@ public class AccountService {
      */
     @Autowired
     public AccountService(
-            @Lazy AccountRepository accountRepository,
+            AccountRepository accountRepository,
             AccountValidator accountValidator,
             AuditService auditService,
             SessionManagementService sessionManagementService) {

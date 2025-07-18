@@ -8,6 +8,8 @@ import java.util.ArrayList;
 import java.util.regex.Pattern;
 import org.springframework.stereotype.Component;
 
+import com.carddemo.entity.Account;
+
 /**
  * Comprehensive account validation service preserving exact COBOL field validation rules.
  * 
@@ -33,7 +35,7 @@ public class AccountValidator {
     
     // COBOL-equivalent validation patterns
     private static final Pattern ACCOUNT_ID_PATTERN = Pattern.compile("^\\d{11}$");
-    private static final Pattern ACTIVE_STATUS_PATTERN = Pattern.compile("^[YN]$");
+    private static final Pattern ACTIVE_STATUS_PATTERN = Pattern.compile("^[AIS]$");
     private static final Pattern ZIP_CODE_PATTERN = Pattern.compile("^\\d{5}(-\\d{4})?$|^\\d{10}$");
     private static final Pattern GROUP_ID_PATTERN = Pattern.compile("^[A-Za-z0-9]{1,10}$");
     

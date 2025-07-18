@@ -2,6 +2,8 @@ package com.carddemo;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.domain.EntityScan;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.scheduling.annotation.EnableScheduling;
@@ -62,27 +64,9 @@ import org.springframework.session.data.redis.config.annotation.web.http.EnableR
  * @version 1.0
  * @since 2024-01-01
  */
-@SpringBootApplication(scanBasePackages = {
-    "com.carddemo.auth",           // Authentication and authorization services
-    "com.carddemo.menu",           // Main menu and admin menu services
-    "com.carddemo.account",        // Account management services
-    "com.carddemo.card",           // Card lifecycle management services
-    "com.carddemo.transaction",    // Transaction processing services
-    "com.carddemo.payment",        // Payment processing services
-    "com.carddemo.user",           // User management services
-    "com.carddemo.report",         // Report generation services
-    "com.carddemo.batch",          // Batch processing services
-    "com.carddemo.gateway",        // API Gateway services
-    "com.carddemo.session",        // Session management services
-    "com.carddemo.validation",     // Validation services
-    "com.carddemo.audit",          // Audit logging services
-    "com.carddemo.config",         // Configuration classes
-    "com.carddemo.repository",     // JPA repositories
-    "com.carddemo.entity"          // JPA entities
-})
-@EnableJpaRepositories(basePackages = {
-    "com.carddemo.repository"
-})
+@SpringBootApplication
+@EnableJpaRepositories
+@EntityScan
 @EnableBatchProcessing
 @EnableScheduling
 @EnableRedisHttpSession(maxInactiveIntervalInSeconds = 3600) // 1 hour session timeout
@@ -142,7 +126,7 @@ public class CardDemoApplication {
 	        // Start the application
 	        application.run(args);
     	} catch (Exception e) {
-            e.printStackTrace(); // Print anything Spring swallowed
+            e.printStackTrace();
         }
     }
 }

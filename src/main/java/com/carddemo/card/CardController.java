@@ -1,49 +1,43 @@
 package com.carddemo.card;
 
-import org.springframework.web.bind.annotation.*;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.MethodArgumentNotValidException;
-import org.springframework.security.access.AccessDeniedException;
-
-import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Pattern;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-
+import java.security.Principal;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
-import java.util.HashMap;
-import java.util.ArrayList;
-import java.time.LocalDateTime;
-import java.security.Principal;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
-import com.carddemo.card.CardValidator;
-import com.carddemo.card.CardService;
-import com.carddemo.card.CardListService;
-import com.carddemo.card.CardDetailService;
-import com.carddemo.card.CardUpdateService;
-import com.carddemo.card.CardListDTO;
-import com.carddemo.card.CardDetailDTO;
-import com.carddemo.card.CardUpdateDTO;
-import com.carddemo.card.Card;
-import com.carddemo.card.CardNotFoundException;
-import com.carddemo.card.CardValidationException;
 import com.carddemo.audit.AuditService;
+import com.carddemo.entity.Card;
 import com.carddemo.session.SessionManagementService;
+
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 
 /**
  * REST controller class exposing card management operations through HTTP endpoints,
@@ -645,10 +639,11 @@ public class CardController {
      * @param ex Exception instance
      * @param request HTTP request for context
      * @return ResponseEntity with error details and HTTP 500 status
+     * @throws Exception 
      */
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<Map<String, Object>> handleGeneralException(
-            Exception ex, HttpServletRequest request) {
+    public void handleGeneralException(
+            Exception ex, HttpServletRequest request) throws Exception {
         
         logger.error("Unexpected error in CardController", ex);
         
@@ -660,13 +655,7 @@ public class CardController {
                                     "Internal error for user: " + username, 
                                     createAuditDetails("generalException", "INTERNAL_ERROR", request.getRequestURI()));
         
-        Map<String, Object> errorResponse = new HashMap<>();
-        errorResponse.put("error", "INTERNAL_SERVER_ERROR");
-        errorResponse.put("message", "An unexpected error occurred");
-        errorResponse.put("timestamp", LocalDateTime.now());
-        errorResponse.put("path", request.getRequestURI());
-        
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
+        throw ex;
     }
     
     /**

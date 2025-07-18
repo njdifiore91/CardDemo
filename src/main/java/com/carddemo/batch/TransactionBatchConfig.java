@@ -1,12 +1,12 @@
 package com.carddemo.batch;
 
-import com.carddemo.transaction.Transaction;
 import com.carddemo.transaction.TransactionRepository;
-import com.carddemo.account.Account;
 import com.carddemo.account.AccountRepository;
-import com.carddemo.card.Card;
 import com.carddemo.card.CardRepository;
+import com.carddemo.entity.Account;
+import com.carddemo.entity.Card;
 import com.carddemo.entity.Customer;
+import com.carddemo.entity.Transaction;
 import com.carddemo.audit.AuditService;
 import com.carddemo.service.ReportService;
 
@@ -190,15 +190,12 @@ public class TransactionBatchConfig {
     };
 
     @Autowired
-    @Lazy
     private TransactionRepository transactionRepository;
 
     @Autowired
-    @Lazy
     private AccountRepository accountRepository;
 
     @Autowired
-    @Lazy
     private CardRepository cardRepository;
 
     @Autowired

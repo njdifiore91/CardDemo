@@ -1,8 +1,8 @@
 package com.carddemo.batch;
 
-import com.carddemo.account.Account;
 import com.carddemo.account.AccountRepository;
 import com.carddemo.audit.AuditService;
+import com.carddemo.entity.Account;
 import com.carddemo.service.ReportService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -117,7 +117,6 @@ public class AccountBatchConfig {
     private BatchJobConfig batchJobConfig;
     
     @Autowired
-    @Lazy
     private AccountRepository accountRepository;
     
     @Autowired

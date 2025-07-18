@@ -13,8 +13,9 @@ import jakarta.persistence.OptimisticLockException;
 import java.math.BigDecimal;
 
 import com.carddemo.audit.AuditService;
+import com.carddemo.entity.Account;
+import com.carddemo.entity.Card;
 import com.carddemo.session.SessionManagementService;
-import com.carddemo.account.Account;
 import com.carddemo.account.AccountRepository;
 
 import org.slf4j.Logger;
@@ -96,11 +97,11 @@ public class CardUpdateService {
      * @param accountRepository Repository for account data access operations
      */
     @Autowired
-    public CardUpdateService(@Lazy CardRepository cardRepository, 
+    public CardUpdateService(CardRepository cardRepository, 
                            CardValidator cardValidator,
                            AuditService auditService,
                            SessionManagementService sessionManagementService,
-                           @Lazy AccountRepository accountRepository) {
+                           AccountRepository accountRepository) {
         this.cardRepository = cardRepository;
         this.cardValidator = cardValidator;
         this.auditService = auditService;

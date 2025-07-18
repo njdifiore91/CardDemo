@@ -1,4 +1,4 @@
-package com.carddemo.transaction;
+package com.carddemo.entity;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;

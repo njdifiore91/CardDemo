@@ -28,10 +28,10 @@ import java.time.LocalDateTime;
 import java.util.stream.Collectors;
 
 import com.carddemo.account.AccountService;
-import com.carddemo.account.Account;
 import com.carddemo.account.AccountValidator;
 import com.carddemo.account.AccountValidator.ValidationResult;
 import com.carddemo.audit.AuditService;
+import com.carddemo.entity.Account;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -542,25 +542,6 @@ public class AccountController {
         errorResponse.setTimestamp(LocalDateTime.now());
         
         return ResponseEntity.status(HttpStatus.CONFLICT).body(errorResponse);
-    }
-    
-    /**
-     * Handles general system exceptions.
-     * 
-     * @param ex RuntimeException
-     * @return standardized error response
-     */
-    @ExceptionHandler(RuntimeException.class)
-    public ResponseEntity<ErrorResponseDTO> handleGeneralException(RuntimeException ex) {
-        logger.error("System error: {}", ex.getMessage(), ex);
-        
-        ErrorResponseDTO errorResponse = new ErrorResponseDTO();
-        errorResponse.setResponseCode(RESPONSE_SYSTEM_ERROR);
-        errorResponse.setResponseMessage("System error occurred");
-        errorResponse.setErrorDetail("An unexpected error occurred while processing your request");
-        errorResponse.setTimestamp(LocalDateTime.now());
-        
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
     }
     
     // DTOs for request/response handling

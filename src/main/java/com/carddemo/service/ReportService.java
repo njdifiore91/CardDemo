@@ -23,7 +23,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.util.StringUtils;
 
-import com.carddemo.transaction.Transaction;
+import com.carddemo.entity.Transaction;
 
 import javax.sql.DataSource;
 import java.io.ByteArrayOutputStream;

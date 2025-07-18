@@ -1,12 +1,12 @@
 package com.carddemo.card;
 
+import com.carddemo.entity.Account;
+import com.carddemo.entity.Card;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.validation.constraints.NotBlank;
 import java.time.LocalDate;
 import java.util.Objects;
 import java.math.BigDecimal;
-
-import com.carddemo.account.Account;
 
 /**
  * Data Transfer Object for comprehensive card detail operations.

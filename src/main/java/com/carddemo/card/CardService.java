@@ -24,6 +24,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.carddemo.account.AccountRepository;
 import com.carddemo.audit.AuditService;
+import com.carddemo.entity.Card;
 import com.carddemo.session.SessionManagementService;
 
 import jakarta.validation.Valid;
@@ -135,10 +136,10 @@ public class CardService {
                       CardListService cardListService,
                       CardDetailService cardDetailService,
                       CardUpdateService cardUpdateService,
-                      @Lazy CardRepository cardRepository,
+                      CardRepository cardRepository,
                       AuditService auditService,
                       SessionManagementService sessionManagementService,
-                      @Lazy AccountRepository accountRepository) {
+                      AccountRepository accountRepository) {
         this.cardValidator = cardValidator;
         this.cardListService = cardListService;
         this.cardDetailService = cardDetailService;

@@ -22,10 +22,11 @@ import java.util.ArrayList;
 import java.util.stream.Collectors;
 
 import com.carddemo.audit.AuditService;
+import com.carddemo.entity.Account;
+import com.carddemo.entity.Card;
 import com.carddemo.entity.User;
 import com.carddemo.repository.UserRepository;
 import com.carddemo.session.SessionManagementService;
-import com.carddemo.account.Account;
 import com.carddemo.account.AccountRepository;
 
 /**
@@ -102,8 +103,8 @@ public class CardListService {
      * @param sessionManagementService Service for session context management
      */
     @Autowired
-    public CardListService(@Lazy CardRepository cardRepository, 
-    			@Lazy AccountRepository accountRepository,
+    public CardListService(CardRepository cardRepository, 
+    			AccountRepository accountRepository,
                           AuditService auditService, 
                           SessionManagementService sessionManagementService,
                           UserRepository userRepository) {
@@ -263,7 +264,6 @@ public class CardListService {
             return cardPage;
             
         } catch (Exception e) {
-        	e.printStackTrace();
             logger.error("Error retrieving paginated card list", e);
             throw new RuntimeException("Failed to retrieve paginated card list", e);
         }

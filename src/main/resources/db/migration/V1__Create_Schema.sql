@@ -88,15 +88,23 @@ CREATE TABLE accounts (
     -- Account financial data - NUMERIC(15,2) preserves COBOL COMP-3 precision
     current_balance     NUMERIC(15,2) NOT NULL DEFAULT 0.00,
     credit_limit        NUMERIC(15,2) NOT NULL DEFAULT 0.00,
+    cash_credit_limit       NUMERIC(15,2) NOT NULL DEFAULT 0.00,
+    current_cycle_credit    NUMERIC(15,2) NOT NULL DEFAULT 0.00,
+    current_cycle_debit     NUMERIC(15,2) NOT NULL DEFAULT 0.00,
     available_credit    NUMERIC(15,2) NOT NULL DEFAULT 0.00,
     
     -- Account lifecycle dates
     account_open_date   DATE NOT NULL,
     expiry_date         DATE,
-    
+    reissue_date        DATE,
+
+    -- Address and grouping information from COBOL
+    address_zip             VARCHAR(10) NOT NULL,
+    group_id                VARCHAR(10) NOT NULL,
+
     -- Account status and type information
-    account_status      VARCHAR(10) NOT NULL DEFAULT 'ACTIVE' 
-                       CHECK (account_status IN ('ACTIVE', 'CLOSED', 'SUSPENDED', 'PENDING')),
+    account_status      VARCHAR(10) NOT NULL DEFAULT 'A' 
+                       CHECK (account_status IN ('A', 'I', 'S')),
     
     -- Audit and concurrency control columns
     created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -123,7 +131,8 @@ COMMENT ON COLUMN accounts.row_version IS 'Optimistic locking version - replaces
 CREATE TABLE cards (
     -- Primary key - maps to VSAM KSDS key (16 digits)
     card_number         VARCHAR(16) NOT NULL,
-    
+    -- Cardholder name
+    embossed_name       VARCHAR(50) NOT NULL,
     -- Foreign key to accounts table
     account_id          VARCHAR(11) NOT NULL,
     
@@ -132,10 +141,10 @@ CREATE TABLE cards (
     card_expiry_date    DATE NOT NULL,
     
     -- Card status and type information  
-    card_status         VARCHAR(10) NOT NULL DEFAULT 'ACTIVE'
-                       CHECK (card_status IN ('ACTIVE', 'BLOCKED', 'EXPIRED', 'PENDING')),
-    card_type           VARCHAR(10) NOT NULL DEFAULT 'STANDARD'
-                       CHECK (card_type IN ('STANDARD', 'GOLD', 'PLATINUM', 'BUSINESS')),
+    card_status         VARCHAR(1) NOT NULL DEFAULT 'A'
+                       CHECK (card_status IN ('A', 'B', 'E', 'P')),
+    card_type           VARCHAR(10) NOT NULL DEFAULT 'CREDIT'
+                       CHECK (card_type IN ('CREDIT', 'DEBIT', 'PREPAID')),
     
     -- Audit and concurrency control columns
     created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -150,6 +159,7 @@ CREATE TABLE cards (
 COMMENT ON TABLE cards IS 'Card master data - converted from CARDDATA.VSAM.KSDS with 16-digit key and AIX on account_id';
 COMMENT ON COLUMN cards.card_number IS 'Primary key - 16-digit card identifier from VSAM KSDS key';
 COMMENT ON COLUMN cards.row_version IS 'Optimistic locking version - replaces CICS record-level sharing (RLS)';
+COMMENT ON COLUMN cards.embossed_name IS 'Embossed cardholder name from COBOL CARD-EMBOSSED-NAME field';
 
 -- -----------------------------------------------------------------------------
 -- 1.4 TRANSACTIONS TABLE
@@ -672,6 +682,36 @@ END;
 $$ LANGUAGE plpgsql;
 
 COMMENT ON FUNCTION maintain_cross_references() IS 'Cross-reference maintenance - ensures bidirectional navigation integrity';
+
+-- -----------------------------------------------------------------------------
+-- BATCH-JOB-INSTANCE
+-- -----------------------------------------------------------------------------
+CREATE TABLE BATCH_JOB_INSTANCE (
+    JOB_INSTANCE_ID BIGINT NOT NULL PRIMARY KEY,
+    VERSION BIGINT,
+    JOB_NAME VARCHAR(100) NOT NULL,
+    JOB_KEY VARCHAR(32) NOT NULL,
+    constraint JOB_INST_UN unique (JOB_NAME, JOB_KEY)
+);
+
+CREATE TABLE BATCH_JOB_EXECUTION (
+    JOB_EXECUTION_ID BIGINT NOT NULL PRIMARY KEY,
+    VERSION BIGINT,
+    JOB_INSTANCE_ID BIGINT NOT NULL,
+    CREATE_TIME TIMESTAMP NOT NULL,
+    START_TIME TIMESTAMP DEFAULT NULL,
+    END_TIME TIMESTAMP DEFAULT NULL,
+    STATUS VARCHAR(10),
+    EXIT_CODE VARCHAR(2500),
+    EXIT_MESSAGE VARCHAR(2500),
+    LAST_UPDATED TIMESTAMP,
+    JOB_CONFIGURATION_LOCATION VARCHAR(2500) NULL,
+    constraint JOB_INST_EXEC_FK foreign key (JOB_INSTANCE_ID)
+    references BATCH_JOB_INSTANCE(JOB_INSTANCE_ID)
+);
+
+-- Similarly create BATCH_STEP_EXECUTION, BATCH_JOB_EXECUTION_CONTEXT, etc.
+
 
 -- =============================================================================
 -- 7. TRIGGER DEFINITIONS

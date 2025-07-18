@@ -8,9 +8,10 @@ import java.util.Optional;
 import org.slf4j.LoggerFactory;
 import jakarta.validation.Valid;
 
-import com.carddemo.account.Account;
 import com.carddemo.account.AccountRepository;
 import com.carddemo.audit.AuditService;
+import com.carddemo.entity.Account;
+import com.carddemo.entity.Card;
 import com.carddemo.session.SessionManagementService;
 
 import org.slf4j.Logger;
@@ -90,8 +91,8 @@ public class CardDetailService {
      */
     @Autowired
     public CardDetailService(
-            @Lazy CardRepository cardRepository,
-            @Lazy AccountRepository accountRepository,
+            CardRepository cardRepository,
+            AccountRepository accountRepository,
             CardValidator cardValidator,
             AuditService auditService,
             SessionManagementService sessionManagementService) {

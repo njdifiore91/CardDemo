@@ -59,9 +59,9 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.PlatformTransactionManager;
 
-import com.carddemo.account.Account;
+import com.carddemo.entity.Account;
+import com.carddemo.entity.Transaction;
 import com.carddemo.service.ReportService;
-import com.carddemo.transaction.Transaction;
 
 import jakarta.persistence.EntityManagerFactory;
 
@@ -116,7 +116,6 @@ public class StatementBatchService {
     private ReportService reportService;
     
     @Autowired
-    @Lazy
     private JobRepository jobRepository;
     
     @Autowired

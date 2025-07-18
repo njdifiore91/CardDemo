@@ -1,13 +1,13 @@
-package com.carddemo.card;
+package com.carddemo.entity;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
+
 import com.fasterxml.jackson.annotation.JsonFormat;
 import java.io.Serializable;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Objects;
-
-import com.carddemo.account.Account;
 
 /**
  * JPA Entity class representing card records with exact COBOL field mapping.
@@ -115,8 +115,25 @@ public class Card implements Serializable {
      * Replaces CICS record sharing mechanisms with JPA-based optimistic locking
      */
     @Version
-    @Column(name = "version_number")
+    @Column(name = "row_version")
     private Integer versionNumber;
+    
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private LocalDateTime createdAt;
+
+    @Column(name = "updated_at", nullable = false)
+    private LocalDateTime updatedAt;
+
+    @PrePersist
+    public void onCreate() {
+        createdAt = LocalDateTime.now();
+        updatedAt = LocalDateTime.now();
+    }
+
+    @PreUpdate
+    public void onUpdate() {
+        updatedAt = LocalDateTime.now();
+    }
     
     /**
      * Default constructor for JPA
@@ -221,7 +238,23 @@ public class Card implements Serializable {
         this.versionNumber = versionNumber;
     }
     
-    /**
+    public LocalDateTime getCreatedAt() {
+		return createdAt;
+	}
+
+	public void setCreatedAt(LocalDateTime createdAt) {
+		this.createdAt = createdAt;
+	}
+
+	public LocalDateTime getUpdatedAt() {
+		return updatedAt;
+	}
+
+	public void setUpdatedAt(LocalDateTime updatedAt) {
+		this.updatedAt = updatedAt;
+	}
+
+	/**
      * Business logic method to check if card is active
      * Replicates COBOL 88-level condition logic
      * 

@@ -26,10 +26,11 @@ import java.util.concurrent.TimeoutException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.carddemo.account.Account;
 import com.carddemo.account.AccountRepository;
-import com.carddemo.card.Card;
 import com.carddemo.card.CardRepository;
+import com.carddemo.entity.Account;
+import com.carddemo.entity.Card;
+import com.carddemo.entity.Transaction;
 import com.carddemo.audit.AuditService;
 import com.carddemo.session.SessionManagementService;
 
@@ -120,9 +121,9 @@ public class TransactionService {
      * @param sessionManagementService Service for session state management
      */
     @Autowired
-    public TransactionService(@Lazy TransactionRepository transactionRepository,
-                            @Lazy AccountRepository accountRepository,
-                            @Lazy CardRepository cardRepository,
+    public TransactionService(TransactionRepository transactionRepository,
+                            AccountRepository accountRepository,
+                            CardRepository cardRepository,
                             AuditService auditService,
                             SessionManagementService sessionManagementService) {
         this.transactionRepository = transactionRepository;
