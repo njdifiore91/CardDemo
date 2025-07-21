@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -516,6 +517,8 @@ public class CardController {
                 } else {
                     searchResults = new CardListDTO(new ArrayList<>(), 1, size, 0L);
                 }
+            } else if (StringUtils.isNotBlank(status)) {
+            	searchResults = cardListService.buildCardListResponse(cardListService.filterCardsByStatusWithPagination(status, pageable));
             } else {
                 // No specific criteria, return all cards with pagination
                 org.springframework.data.domain.Page<Card> cardPage = cardListService.getCardListWithPagination(pageable);

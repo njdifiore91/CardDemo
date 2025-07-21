@@ -107,8 +107,8 @@ import java.util.stream.Collectors;
 @Transactional
 public class AuthenticationService implements UserDetailsService {
 
-    private static final String ADMIN_ROLE_CODE = "A";
-    private static final String USER_ROLE_CODE = "U";
+    private static final String ADMIN_ROLE_CODE = "ADMIN";
+    private static final String USER_ROLE_CODE = "USER";
     private static final String ROLE_PREFIX = "ROLE_";
     private static final String ROLE_ADMIN = "ROLE_ADMIN";
     private static final String ROLE_USER = "ROLE_USER";

@@ -265,7 +265,7 @@ public class AccountController {
             throw e;
         } catch (Exception e) {
             logger.error("Unexpected error updating account: {} - {}", accountId, e.getMessage());
-            throw new RuntimeException("System error updating account", e);
+            throw e;
         }
     }
     
@@ -427,6 +427,8 @@ public class AccountController {
         account.setAddressZip(updateDTO.getAddressZip());
         account.setGroupId(updateDTO.getGroupId());
         account.setVersionNumber(updateDTO.getVersionNumber());
+        account.setAvailableCredit(updateDTO.getAvailableCredit());
+        account.setCustomerId(updateDTO.getCustomerId());
         
         return account;
     }
@@ -694,6 +696,10 @@ public class AccountController {
         private String groupId;
         
         private Integer versionNumber;
+
+        private BigDecimal availableCredit;
+
+        private String customerId;
         
         // Default constructor
         public AccountUpdateDTO() {}
@@ -737,6 +743,12 @@ public class AccountController {
         
         public Integer getVersionNumber() { return versionNumber; }
         public void setVersionNumber(Integer versionNumber) { this.versionNumber = versionNumber; }
+        
+        public BigDecimal getAvailableCredit() { return availableCredit; }
+        public void setAvailableCredit(BigDecimal availableCredit) { this.availableCredit = availableCredit; }
+        
+        public String getCustomerId() { return customerId; }
+        public void setCustomerId(String customerId) { this.customerId = customerId; }
     }
     
     /**

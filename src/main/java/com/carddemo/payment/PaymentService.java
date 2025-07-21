@@ -67,12 +67,12 @@ public class PaymentService {
 
     // COBOL-equivalent constants for payment processing
     private static final String PAYMENT_TRANSACTION_TYPE = "02";      // COBOL: MOVE '02' TO TRAN-TYPE-CD
-    private static final String PAYMENT_CATEGORY_CODE = "0002";       // COBOL: MOVE 2 TO TRAN-CAT-CD (padded to 4 digits)
+    private static final String PAYMENT_CATEGORY_CODE = "1002";       // COBOL: MOVE 2 TO TRAN-CAT-CD (padded to 4 digits)
     private static final String PAYMENT_SOURCE = "POS TERM";          // COBOL: MOVE 'POS TERM' TO TRAN-SOURCE
     private static final String PAYMENT_DESCRIPTION = "BILL PAYMENT - ONLINE";  // COBOL: MOVE 'BILL PAYMENT - ONLINE' TO TRAN-DESC
     private static final String PAYMENT_MERCHANT_NAME = "BILL PAYMENT";         // COBOL: MOVE 'BILL PAYMENT' TO TRAN-MERCHANT-NAME
     private static final String PAYMENT_MERCHANT_CITY = "N/A";                  // COBOL: MOVE 'N/A' TO TRAN-MERCHANT-CITY
-    private static final String PAYMENT_MERCHANT_ZIP = "N/A";                   // COBOL: MOVE 'N/A' TO TRAN-MERCHANT-ZIP
+    private static final String PAYMENT_MERCHANT_ZIP = "12345";                   // COBOL: MOVE '12345' TO TRAN-MERCHANT-ZIP
     private static final String PAYMENT_SUCCESS_STATUS = "SUCCESS";
     private static final String PAYMENT_CONFIRMATION_REQUIRED_STATUS = "CONFIRMATION_REQUIRED";
     private static final String PAYMENT_FAILURE_STATUS = "FAILURE";

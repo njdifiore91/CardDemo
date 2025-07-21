@@ -67,9 +67,9 @@ public class Transaction {
      * Uses BigDecimal to preserve exact COBOL COMP-3 numeric precision
      * Scale 2 for monetary amounts (cents precision)
      */
-    @Column(name = "transaction_amount", precision = 11, scale = 2, nullable = false)
+    @Column(name = "transaction_amount", precision = 15, scale = 2, nullable = false)
     @NotNull(message = "Transaction amount is required")
-    @Digits(integer = 9, fraction = 2, message = "Transaction amount must have maximum 9 integer digits and 2 decimal places")
+    @Digits(integer = 13, fraction = 2, message = "Transaction amount must have maximum 13 integer digits and 2 decimal places")
     @DecimalMin(value = "-999999999.99", message = "Transaction amount cannot be less than -999999999.99")
     @DecimalMax(value = "999999999.99", message = "Transaction amount cannot exceed 999999999.99")
     private BigDecimal transactionAmount;
@@ -99,7 +99,7 @@ public class Transaction {
      * Mapped from COBOL field: TRAN-CAT-CD PIC 9(04)
      * References transaction_categories table for category description
      */
-    @Column(name = "transaction_category_code", length = 4, nullable = false)
+    @Column(name = "transaction_cat_cd", length = 4, nullable = false)
     @NotNull(message = "Transaction category code is required")
     @Size(min = 4, max = 4, message = "Transaction category code must be exactly 4 characters")
     @Pattern(regexp = "^[0-9]{4}$", message = "Transaction category code must contain only digits")
@@ -172,7 +172,7 @@ public class Transaction {
      * Automatically managed by JPA for concurrent access control
      */
     @Version
-    @Column(name = "version_number", nullable = false)
+    @Column(name = "row_version", nullable = false)
     private Integer versionNumber;
 
     /**

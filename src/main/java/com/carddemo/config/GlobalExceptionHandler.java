@@ -12,11 +12,13 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.orm.jpa.JpaSystemException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.transaction.TransactionSystemException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.ConstraintViolationException;
 
 @ControllerAdvice
 public class GlobalExceptionHandler {
@@ -79,6 +81,59 @@ public class GlobalExceptionHandler {
             ));
     }
 
+    @ExceptionHandler(ConstraintViolationException.class)
+    public ResponseEntity<Map<String, Object>> handleConstraintViolation(ConstraintViolationException ex) {
+
+        Map<String, Object> errorResponse = new HashMap<>();
+        errorResponse.put("error", "Validation Failed");
+
+        String details = ex.getConstraintViolations()
+                .stream()
+                .map(violation -> violation.getPropertyPath() + ": " + violation.getMessage())
+                .collect(Collectors.joining("; "));
+
+        errorResponse.put("details", details);
+
+        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+    }
+    
+    @ExceptionHandler(TransactionSystemException.class)
+    public ResponseEntity<Map<String, Object>> handleTransactionSystemException(TransactionSystemException ex) {
+
+        Throwable rootCause = getRootCause(ex);
+
+        if (rootCause instanceof ConstraintViolationException) {
+            ConstraintViolationException constraintEx = (ConstraintViolationException) rootCause;
+
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("error", "Validation Failed");
+
+            String details = constraintEx.getConstraintViolations()
+                    .stream()
+                    .map(violation -> violation.getPropertyPath() + ": " + violation.getMessage())
+                    .collect(Collectors.joining("; "));
+
+            errorResponse.put("details", details);
+
+            return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+        }
+
+        // Fallback: generic error response if root cause is not ConstraintViolationException
+        Map<String, Object> fallbackResponse = new HashMap<>();
+        fallbackResponse.put("error", "Transaction Error");
+        fallbackResponse.put("message", ex.getMessage());
+
+        return new ResponseEntity<>(fallbackResponse, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    private Throwable getRootCause(Throwable ex) {
+        Throwable cause = ex.getCause();
+        while (cause != null && cause.getCause() != null) {
+            cause = cause.getCause();
+        }
+        return cause;
+    }
+    
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, Object>> handleAllOtherExceptions(Exception ex, HttpServletRequest request) {
         logger.error("Unexpected server error", ex);

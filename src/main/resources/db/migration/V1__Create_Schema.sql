@@ -180,18 +180,21 @@ CREATE TABLE transactions (
     transaction_amount  NUMERIC(15,2) NOT NULL,
     
     -- Merchant and location information
-    merchant_name       VARCHAR(50),
-    merchant_city       VARCHAR(30),
-    merchant_zip        VARCHAR(10),
+    merchant_name       VARCHAR(50) NOT NULL,
+    merchant_city       VARCHAR(50) NOT NULL,
+    merchant_zip        VARCHAR(10) NOT NULL,
     
     -- Transaction timing and classification
     transaction_timestamp TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     transaction_type_cd   VARCHAR(2) NOT NULL,
-    transaction_cat_cd    VARCHAR(6) NOT NULL,
+    transaction_cat_cd    VARCHAR(4) NOT NULL,
+    transaction_description VARCHAR(100) NOT NULL,
     
     -- Audit and concurrency control columns
     created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    processed_timestamp      TIMESTAMP NOT NULL,
+    transaction_source       VARCHAR(10) NOT NULL,
     row_version         INTEGER NOT NULL DEFAULT 1,
     
     -- Primary key constraint

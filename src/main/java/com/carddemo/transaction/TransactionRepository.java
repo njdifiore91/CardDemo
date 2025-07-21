@@ -418,7 +418,7 @@ public interface TransactionRepository extends JpaRepository<Transaction, String
      */
     @Query(value = "SELECT * FROM transactions WHERE card_number = :cardNumber " +
            "AND transaction_amount = :transactionAmount AND merchant_name = :merchantName " +
-           "AND transaction_timestamp >= NOW() - INTERVAL ':timeWindow hours' " +
+           "AND transaction_timestamp >= NOW() - CAST((CAST(:timeWindow AS TEXT) || ' hours') AS INTERVAL) " +
            "ORDER BY transaction_timestamp DESC",
            nativeQuery = true)
     List<Transaction> findPotentialDuplicateTransactions(@Param("cardNumber") String cardNumber,

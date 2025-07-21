@@ -41,17 +41,21 @@
     <!-- DEVELOPMENT PROFILE -->
     <springProfile name="development">
         <!-- In development: force root to DEBUG -->
-        <root level="DEBUG">
+        <root level="TRACE">
             <appender-ref ref="CONSOLE"/>
             <appender-ref ref="ASYNC_APPLICATION"/>
             <appender-ref ref="ERROR_APPENDER"/>
         </root>
 
         <!-- Explicitly enable console output for key loggers -->
-        <logger name="org.hibernate.SQL" level="DEBUG" additivity="true">
+        <logger name="org.hibernate.SQL" level="TRACE" additivity="true">
             <appender-ref ref="CONSOLE"/>
             <appender-ref ref="ASYNC_PERFORMANCE"/>
         </logger>
+
+		<logger name="org.hibernate.orm.jdbc.bind" level="TRACE">
+		    <appender-ref ref="CONSOLE"/>
+		</logger>
 
         <logger name="org.hibernate.type.descriptor.sql.BasicBinder" level="TRACE" additivity="true">
             <appender-ref ref="CONSOLE"/>

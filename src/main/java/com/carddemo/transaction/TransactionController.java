@@ -2,6 +2,7 @@ package com.carddemo.transaction;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -128,12 +129,11 @@ public class TransactionController {
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = DEFAULT_SORT_FIELD) String sortBy,
             @RequestParam(defaultValue = DEFAULT_SORT_DIRECTION) String sortDirection,
-            @RequestParam(required = false) String transactionId,
             HttpServletRequest request) {
         
         try {
-            logger.info("Processing transaction list request - page: {}, size: {}, transactionId: {}", 
-                       page, size, transactionId);
+            logger.info("Processing transaction list request - page: {}, size: {}", 
+                       page, size);
             
             // Update navigation context in session
             updateNavigationContext(request, "CT00", "TRANSACTION_LIST");
@@ -543,7 +543,17 @@ public class TransactionController {
             } else if (minAmount != null && maxAmount != null) {
                 List<Transaction> transactions = transactionService.getTransactionsByAmountRange(minAmount, maxAmount);
                 // Convert to page (simplified for this example)
-                transactionPage = transactionService.listTransactions(page, size, DEFAULT_SORT_FIELD, DEFAULT_SORT_DIRECTION);
+                if (page < 0) {
+                    throw new IllegalArgumentException("Page number must be non-negative");
+                }
+                if (size <= 0 || size > MAX_PAGE_SIZE) {
+                    size = DEFAULT_PAGE_SIZE;
+                }
+                
+                // Create sort specification
+                Sort sort = Sort.by(Sort.Direction.fromString(DEFAULT_SORT_DIRECTION), DEFAULT_SORT_FIELD);
+                Pageable pageable = PageRequest.of(page, size, sort);
+                transactionPage = new PageImpl<>(transactions, pageable, transactions.size());
             } else {
                 transactionPage = transactionService.listTransactions(page, size, DEFAULT_SORT_FIELD, DEFAULT_SORT_DIRECTION);
             }
